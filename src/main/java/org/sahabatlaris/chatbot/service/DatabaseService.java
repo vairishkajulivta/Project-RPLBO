@@ -6,7 +6,7 @@ import java.util.List;
 
 public class DatabaseService {
     private static DatabaseService instance;
-    private List<Produk> produkList = new ArrayList<>();
+    private final List<Produk> produkList = new ArrayList<>();
 
     private DatabaseService() {
         initDataSample();
