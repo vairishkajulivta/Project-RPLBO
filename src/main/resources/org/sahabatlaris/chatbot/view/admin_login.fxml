@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<HBox xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="org.sahabatlaris.chatbot.Controller.AdminLoginController"
+      styleClass="root-login"
+      prefWidth="900" prefHeight="600">
+
+    <VBox styleClass="left-panel" prefWidth="360" alignment="CENTER" spacing="24">
+        <StackPane styleClass="logo-circle">
+            <Label text="SL" styleClass="logo-initials"/>
+        </StackPane>
+        <Label text="SahabatLaris" styleClass="brand-name"/>
+        <Label text="Panel Admin" styleClass="brand-tagline" textAlignment="CENTER"/>
+        <Label text="Khusus untuk pengelola toko" styleClass="brand-tagline" textAlignment="CENTER"/>
+    </VBox>
+
+    <VBox styleClass="right-panel" HBox.hgrow="ALWAYS" alignment="CENTER" spacing="20">
+        <padding>
+            <Insets top="50" right="80" bottom="50" left="80"/>
+        </padding>
+
+        <StackPane styleClass="avatar-circle">
+            <Label text="🔐" styleClass="avatar-icon"/>
+        </StackPane>
+
+        <Label text="Masuk sebagai Admin" styleClass="login-title"/>
+        <Label text="Masukkan kredensial admin Anda" styleClass="login-subtitle"/>
+
+        <VBox spacing="8" maxWidth="340">
+            <Label text="Username" styleClass="field-label"/>
+            <TextField fx:id="usernameField"
+                       styleClass="login-field"
+                       promptText="Masukkan username admin"
+                       maxWidth="Infinity"
+                       onAction="#handleLogin"/>
+        </VBox>
+
+        <VBox spacing="8" maxWidth="340">
+            <Label text="Password" styleClass="field-label"/>
+            <StackPane>
+                <PasswordField fx:id="passwordField"
+                               styleClass="login-field"
+                               promptText="Masukkan password"
+                               maxWidth="Infinity"
+                               onAction="#handleLogin"/>
+                <Label fx:id="togglePassword" text="👁"
+                       styleClass="toggle-password"
+                       alignment="CENTER_RIGHT"
+                       onMouseClicked="#togglePasswordVisibility"
+                       StackPane.alignment="CENTER_RIGHT">
+                    <StackPane.margin>
+                        <Insets right="12"/>
+                    </StackPane.margin>
+                </Label>
+            </StackPane>
+        </VBox>
+
+        <Label fx:id="errorLabel"
+               styleClass="error-label"
+               maxWidth="340"
+               wrapText="true"/>
+
+        <Button text="Masuk"
+                styleClass="login-btn"
+                maxWidth="340"
+                onAction="#handleLogin"/>
+
+    </VBox>
+</HBox>

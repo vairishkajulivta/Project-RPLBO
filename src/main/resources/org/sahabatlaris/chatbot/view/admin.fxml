@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.sahabatlaris.chatbot.Controller.AdminController"
+            styleClass="admin-root"
+            prefWidth="1200" prefHeight="750">
+
+    <top>
+        <HBox styleClass="admin-navbar" alignment="CENTER_LEFT" spacing="14">
+            <Label text="SahabatLaris - Admin Panel" styleClass="navbar-brand" HBox.hgrow="ALWAYS"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="Keluar" styleClass="btn-keluar" onAction="#handleLogout"/>
+        </HBox>
+    </top>
+
+    <center>
+        <HBox>
+            <VBox styleClass="admin-sidebar" prefWidth="200">
+                <Button fx:id="btnDataProduk" styleClass="sidebar-btn-active"
+                        text="📦  Data Produk" maxWidth="Infinity" onAction="#showDataProduk"/>
+                <Button fx:id="btnInfoToko" styleClass="sidebar-btn"
+                        text="🏪  Info Toko" maxWidth="Infinity" onAction="#showInfoToko"/>
+            </VBox>
+
+            <StackPane HBox.hgrow="ALWAYS" styleClass="content-panel">
+                <padding>
+                    <Insets top="28" right="28" bottom="28" left="28"/>
+                </padding>
+
+                <VBox fx:id="panelDataProduk" spacing="16">
+                    <HBox alignment="CENTER_LEFT" spacing="12">
+                        <Label text="Data Produk" styleClass="content-title"/>
+                        <Label fx:id="labelJumlahProduk" text="0 produk" styleClass="badge-count"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <ComboBox fx:id="filterKategori" styleClass="combo-kategori" promptText="Semua Kategori"/>
+                        <Button text="+ Tambah Produk" styleClass="btn-tambah" onAction="#showTambahProduk"/>
+                    </HBox>
+                    <TableView fx:id="tabelProduk" styleClass="produk-table" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="colNo" text="No" prefWidth="50"/>
+                            <TableColumn fx:id="colNama" text="Nama Produk" prefWidth="240"/>
+                            <TableColumn fx:id="colKategori" text="Kategori" prefWidth="160"/>
+                            <TableColumn fx:id="colHarga" text="Harga" prefWidth="120"/>
+                            <TableColumn fx:id="colKandungan" text="Kandungan" prefWidth="240"/>
+                            <TableColumn fx:id="colStatus" text="Status" prefWidth="90"/>
+                            <TableColumn fx:id="colAksi" text="Aksi" prefWidth="140"/>
+                        </columns>
+                        <placeholder><Label text="Belum ada produk" styleClass="empty-label"/></placeholder>
+                    </TableView>
+                </VBox>
+
+                <VBox fx:id="panelInfoToko" spacing="16" visible="false">
+                    <Label text="Informasi Toko" styleClass="content-title"/>
+                    <ScrollPane styleClass="scroll-info" fitToWidth="true" VBox.vgrow="ALWAYS">
+                        <VBox spacing="16">
+                            <VBox styleClass="info-section" spacing="12">
+                                <Label text="Identitas Toko" styleClass="section-title"/>
+                                <GridPane hgap="14" vgap="10">
+                                    <columnConstraints>
+                                        <ColumnConstraints minWidth="110" maxWidth="130"/>
+                                        <ColumnConstraints hgrow="ALWAYS"/>
+                                    </columnConstraints>
+                                    <Label text="Nama Toko" styleClass="field-label-sm" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                                    <TextField fx:id="namaToko" styleClass="info-field" promptText="Nama toko" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                                    <Label text="Tagline" styleClass="field-label-sm" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                                    <TextField fx:id="taglineToko" styleClass="info-field" promptText="Tagline" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                                    <Label text="Deskripsi" styleClass="field-label-sm" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                                    <TextArea fx:id="deskripsiToko" styleClass="info-textarea" prefRowCount="3" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+                                </GridPane>
+                            </VBox>
+                            <VBox styleClass="info-section" spacing="12">
+                                <Label text="Lokasi" styleClass="section-title"/>
+                                <GridPane hgap="14" vgap="10">
+                                    <columnConstraints>
+                                        <ColumnConstraints minWidth="110" maxWidth="130"/>
+                                        <ColumnConstraints hgrow="ALWAYS"/>
+                                    </columnConstraints>
+                                    <Label text="Kota" styleClass="field-label-sm" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                                    <TextField fx:id="kotaToko" styleClass="info-field" promptText="Kota" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                                    <Label text="Alamat" styleClass="field-label-sm" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                                    <TextArea fx:id="alamatToko" styleClass="info-textarea" prefRowCount="2" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                                    <Label text="Link Peta" styleClass="field-label-sm" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                                    <TextField fx:id="linkPeta" styleClass="info-field" promptText="https://maps.google.com/..." GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+                                </GridPane>
+                            </VBox>
+                            <VBox styleClass="info-section" spacing="12">
+                                <Label text="Jam Operasional" styleClass="section-title"/>
+                                <VBox fx:id="jamOperasionalContainer" spacing="8"/>
+                            </VBox>
+                            <Button text="💾 Simpan Perubahan" styleClass="btn-simpan" onAction="#simpanInfoToko"/>
+                        </VBox>
+                    </ScrollPane>
+                </VBox>
+
+            </StackPane>
+        </HBox>
+    </center>
+
+</BorderPane>
