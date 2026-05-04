@@ -9,7 +9,6 @@ public class ChatbotService {
     private DatabaseService db = DatabaseService.getInstance();
     private List<Produk> lastProdukResult = null;
 
-    /** Kembalikan hasil produk terakhir yang ditemukan (untuk ditampilkan sebagai card) */
     public List<Produk> getLastProdukResult() {
         List<Produk> tmp = lastProdukResult;
         lastProdukResult = null;
@@ -20,40 +19,45 @@ public class ChatbotService {
         String p = pesan.toLowerCase().trim();
         lastProdukResult = null;
 
-        // ── Sapaan ──────────────────────────────────────────────────────────
         if (p.matches(".*\\b(halo|hai|hello|hi|hei|selamat)\\b.*")) {
             return "Halo! Selamat datang di SahabatLaris \uD83D\uDC4B\n"
                     + "Saya bisa membantu Anda mencari informasi produk skincare.\n\n"
                     + "Coba tanyakan:\n"
-                    + "\u2022 Tampilkan produk skincer untuk kulit sensitif?\n"
-                    + "\u2022 Rekomendasi serum\n"
-                    + "\u2022 Produk untuk kulit sensitif";
+                    + "\u2022 Tampilkan produk skincare untuk kulit sensitif\n"
+                    + "\u2022 Tampilkan deskripsi, kandungan, dan harga untuk Moisturizer\n"
+                    + "\u2022 Apakah Wardah Hydra Rose cocok untuk kulit sensitif?\n"
+                    + "\u2022 Dimana lokasi toko di daerah Sleman?\n"
+                    + "\u2022 Tampilkan link maps untuk lokasi Tugu\n"
+                    + "\u2022 Tampilkan jam buka dan tutup toko\n"
+                    + "\u2022 Tampilkan semua produk untuk kategori Sabun Wajah\n"
+                    + "\u2022 Apakah Somethinc Calm Down masih tersedia?";
         }
 
-        // ── Bantuan ─────────────────────────────────────────────────────────
         if (p.contains("bantuan") || p.contains("help") || p.contains("bisa apa")) {
             return "Saya bisa membantu Anda:\n"
-                    + "\u2022 Cek harga produk\n"
-                    + "\u2022 Cari produk berdasarkan kategori\n"
-                    + "\u2022 Rekomendasi berdasarkan jenis kulit\n"
-                    + "\u2022 Info lokasi & jam buka toko\n\n"
+                    + "\u2022 Tampilkan produk berdasarkan jenis kulit\n"
+                    + "\u2022 Info deskripsi, kandungan, dan harga produk\n"
+                    + "\u2022 Cek kecocokan produk untuk jenis kulit\n"
+                    + "\u2022 Info lokasi & jam buka toko\n"
+                    + "\u2022 Rekomendasi produk berdasarkan kategori\n"
+                    + "\u2022 Cek ketersediaan stok produk\n\n"
                     + "Contoh: 'harga toner berapa?' atau cukup ketik 'toner'";
         }
 
-        // ── Lokasi toko (Intent: Lokasi toko) ───────────────────────────────
+
         if (p.contains("lokasi") || p.contains("alamat") || p.contains("dimana") || p.contains("di mana")) {
             String[] info = db.getInfoToko();
             return "\uD83D\uDCCD Lokasi " + info[0] + ":\n" + info[3] + "\n\uD83C\uDFD9\uFE0F " + info[4];
         }
 
-        // ── Peta navigasi (Intent: Peta navigasi) ───────────────────────────
+
         if (p.contains("maps") || p.contains("peta") || p.contains("navigasi") || p.contains("link")) {
             String[] info = db.getInfoToko();
             String link = info[6];
             return "\uD83D\uDDFA\uFE0F Link Maps " + info[0] + ":\n" + (link.isEmpty() ? "Belum tersedia" : link);
         }
 
-        // ── Jam operasional (Intent: Jam operasional) ────────────────────────
+
         if (p.contains("jam") || p.contains("buka") || p.contains("tutup") || p.contains("operasional")) {
             StringBuilder sb = new StringBuilder("\uD83D\uDD50 Jam Operasional Toko:\n\n");
             List<String[]> jamList = db.getJamOperasional();
@@ -64,7 +68,7 @@ public class ChatbotService {
             return sb.toString().trim();
         }
 
-        // ── Jenis kulit (Intent: Rekomendasi / Kecocokan produk) ─────────────
+
         if (p.contains("kulit sensitif")) {
             return cariProdukByJenisKulit("Kulit Sensitif");
         }
@@ -81,7 +85,7 @@ public class ChatbotService {
             return cariProdukByJenisKulit("Kulit Menua");
         }
 
-        // ── Deteksi kategori ─────────────────────────────────────────────────
+
         if (mengandungKategori(p, "pelembab", "moisturizer", "lotion", "krim wajah")) {
             return cariProdukByKategori("Pelembab");
         }
@@ -101,29 +105,29 @@ public class ChatbotService {
             return cariProdukByKategori("Exfoliator");
         }
 
-        // ── Tampilkan semua produk ────────────────────────────────────────────
+
         if (p.contains("produk") || p.contains("ada apa")
                 || p.contains("semua") || p.contains("daftar")
                 || p.contains("list") || p.contains("apa saja")) {
             return cariSemuaProduk();
         }
 
-        // ── Rekomendasi umum ─────────────────────────────────────────────────
+
         if (p.contains("rekomendasi") || p.contains("saran")) {
             return cariSemuaProduk();
         }
 
-        // ── Harga ────────────────────────────────────────────────────────────
+
         if (p.contains("harga") || p.contains("berapa") || p.contains("murah") || p.contains("mahal")) {
             return cariSemuaProduk();
         }
 
-        // ── Cek stok (Intent: Cek stok) ───────────────────────────────────────
+
         if (p.contains("stok") || p.contains("tersedia") || p.contains("ada")) {
             return "Silakan sebutkan nama produk yang ingin Anda cek ketersediaannya.";
         }
 
-        // ── Fallback ─────────────────────────────────────────────────────────
+
         return "Maaf, saya belum memahami pertanyaan Anda \uD83D\uDE4F\n\n"
                 + "Coba ketik salah satu:\n"
                 + "\u2022 Nama kategori: toner, serum, pelembab, sunscreen\n"
