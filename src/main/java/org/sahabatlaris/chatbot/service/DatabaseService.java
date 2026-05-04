@@ -51,14 +51,15 @@ public class DatabaseService {
                 String[] cols = line.split("\t", -1);
                 switch (section) {
                     case "PRODUK" -> {
-                        // Support format lama (8 col) dan baru (9 col dengan areaTubuh)
+                        // Format kolom: kode|nama|kat|harga|kandungan|aktif|jenisKulit|areaTubuh|gambarUrl
                         if (cols.length >= 8) {
-                            String areaTubuh = cols.length >= 9 ? cols[8] : "Muka";
+                            String areaTubuh = cols.length >= 9 ? cols[7] : "Muka";
+                            String gambarUrl = cols.length >= 9 ? cols[8] : (cols.length == 8 ? cols[7] : "");
                             produkList.add(new Produk(
                                     cols[0], cols[1], cols[2],
                                     parseLong(cols[3]),
                                     cols[4], "1".equals(cols[5]),
-                                    cols[6], areaTubuh, cols[7]
+                                    cols[6], areaTubuh, gambarUrl
                             ));
                         }
                     }

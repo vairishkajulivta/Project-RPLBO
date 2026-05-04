@@ -13,16 +13,17 @@ import javafx.scene.layout.*;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 
+import java.io.File;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class ChatManager {
 
-    @FXML private TextField inputField;
-    @FXML private VBox chatContainer;
-    @FXML private ScrollPane chatScrollPane;
-    @FXML private Button btnChat;
+    @FXML private TextField   inputField;
+    @FXML private VBox        chatContainer;
+    @FXML private ScrollPane  chatScrollPane;
+    @FXML private Button      btnChat;
 
     private ChatbotService botService = new ChatbotService();
     private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH.mm");
@@ -57,11 +58,11 @@ public class ChatManager {
                 addBotProductCards(produkDisebut);
             } else {
                 String jawaban = botService.cariJawaban(pesan);
-                List<Produk> produkKategori = botService.getLastProdukResult();
-                if (produkKategori != null && !produkKategori.isEmpty()) {
+                List<Produk> produkResult = botService.getProdukDariJawaban(pesan, jawaban);
+                if (produkResult != null && !produkResult.isEmpty()) {
                     String header = jawaban.split("\n")[0];
                     addBotMessage(header);
-                    addBotProductCards(produkKategori);
+                    addBotProductCards(produkResult);
                 } else {
                     addBotMessage(jawaban);
                 }
@@ -71,7 +72,6 @@ public class ChatManager {
     }
 
     private void addUserMessage(String text) {
-        VBox bubble = new VBox(4);
         Label msg = new Label(text);
         msg.getStyleClass().add("bubble-user-text");
         msg.setWrapText(true);
@@ -84,145 +84,152 @@ public class ChatManager {
         Label time = new Label(LocalTime.now().format(TIME_FMT));
         time.getStyleClass().add("timestamp");
 
-        bubble.getChildren().addAll(bubbleBox, time);
+        VBox bubble = new VBox(4, bubbleBox, time);
         bubble.setAlignment(Pos.CENTER_RIGHT);
 
         HBox row = new HBox(bubble);
         row.setAlignment(Pos.CENTER_RIGHT);
-        HBox.setMargin(bubble, new Insets(0));
-
         chatContainer.getChildren().add(row);
         scrollToBottom();
     }
 
     private void addBotMessage(String text) {
-        VBox bubbleBox = new VBox(4);
-        bubbleBox.getStyleClass().add("bubble-bot");
-
         Label msg = new Label(text);
         msg.getStyleClass().add("bubble-bot-text");
         msg.setWrapText(true);
         msg.setMaxWidth(380);
 
+        VBox bubbleBox = new VBox(4);
+        bubbleBox.getStyleClass().add("bubble-bot");
+        bubbleBox.getChildren().add(msg);
+
         Label time = new Label(LocalTime.now().format(TIME_FMT));
         time.getStyleClass().add("timestamp");
 
-        VBox bubble = new VBox(4);
-        bubbleBox.getChildren().add(msg);
-        bubble.getChildren().addAll(bubbleBox, time);
+        VBox bubble = new VBox(4, bubbleBox, time);
         bubble.setAlignment(Pos.CENTER_LEFT);
 
         HBox row = new HBox(bubble);
         row.setAlignment(Pos.CENTER_LEFT);
-
         chatContainer.getChildren().add(row);
         scrollToBottom();
     }
 
-    /**
-     * Card layout: thumbnail kiri 80x80 + info kanan
-     * Nama | Kategori | Harga | Kandungan | [Badge Area] [Badge Kulit]
-     */
+    // ════════════════════════════════════════════════════════════════════════
+    //  CARD PRODUK — thumbnail kiri besar + info kanan
+    // ════════════════════════════════════════════════════════════════════════
     private void addBotProductCards(List<Produk> produkList) {
         for (Produk prod : produkList) {
 
-            // ── Thumbnail kiri ────────────────────────────────────────────
+            // ── Thumbnail kiri 120x120 ────────────────────────────────────
             StackPane thumbPane = new StackPane();
-            thumbPane.setMinWidth(80);  thumbPane.setMaxWidth(80);
-            thumbPane.setMinHeight(80); thumbPane.setMaxHeight(80);
-            thumbPane.setStyle("-fx-background-color: #e8e8e8; -fx-background-radius: 10;");
+            thumbPane.setMinSize(120, 120);
+            thumbPane.setMaxSize(120, 120);
+            thumbPane.setStyle(
+                    "-fx-background-color: #f0eeff;" +
+                    "-fx-background-radius: 12;");
 
             String imgUrl = prod.getGambarUrl();
             boolean imgLoaded = false;
+
             if (imgUrl != null && !imgUrl.isBlank()) {
                 try {
-                    ImageView imgView = new ImageView(new Image(imgUrl, 80, 80, true, true, true));
-                    imgView.setFitWidth(80);
-                    imgView.setFitHeight(80);
-                    imgView.setPreserveRatio(true);
-                    Rectangle clip = new Rectangle(80, 80);
-                    clip.setArcWidth(16);
-                    clip.setArcHeight(16);
-                    imgView.setClip(clip);
-                    thumbPane.getChildren().add(imgView);
-                    imgLoaded = true;
+                    String resolvedUrl;
+                    if (imgUrl.startsWith("http://") || imgUrl.startsWith("https://")
+                            || imgUrl.startsWith("file:")) {
+                        resolvedUrl = imgUrl;
+                    } else {
+                        // Path lokal relatif → konversi ke file:/// URI absolut
+                        File imgFile = new File(imgUrl);
+                        resolvedUrl = imgFile.getAbsoluteFile().toURI().toString();
+                    }
+                    // false = load synchronous, pasti muncul langsung
+                    Image img = new Image(resolvedUrl, 120, 120, true, true, false);
+                    if (!img.isError()) {
+                        ImageView imgView = new ImageView(img);
+                        imgView.setFitWidth(120);
+                        imgView.setFitHeight(120);
+                        imgView.setPreserveRatio(true);
+                        Rectangle clip = new Rectangle(120, 120);
+                        clip.setArcWidth(20);
+                        clip.setArcHeight(20);
+                        imgView.setClip(clip);
+                        thumbPane.getChildren().add(imgView);
+                        imgLoaded = true;
+                    }
                 } catch (Exception ex) { /* fallback */ }
             }
+
             if (!imgLoaded) {
-                Label noImg = new Label("No Image");
-                noImg.setStyle("-fx-text-fill: #aaa; -fx-font-size: 10px;");
-                thumbPane.getChildren().add(noImg);
+                Label icon = new Label("\uD83D\uDDBC\uFE0F");
+                icon.setStyle("-fx-font-size: 30px;");
+                Label noImgTxt = new Label("No Image");
+                noImgTxt.setStyle("-fx-text-fill: #bbb; -fx-font-size: 10px;");
+                VBox ph = new VBox(4, icon, noImgTxt);
+                ph.setAlignment(Pos.CENTER);
+                thumbPane.getChildren().add(ph);
             }
 
             // ── Info kanan ────────────────────────────────────────────────
             Label nameLbl = new Label(prod.getNamaProduk());
-            nameLbl.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #1a1a2e;");
+            nameLbl.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #1a1a2e;");
             nameLbl.setWrapText(true);
 
-            Label katLbl = new Label(prod.getKategori());
+            Label katLbl = new Label("\u2194\uFE0F " + prod.getKategori());
             katLbl.setStyle("-fx-font-size: 11px; -fx-text-fill: #888;");
 
             Label hargaLbl = new Label(prod.getHargaFormatted());
-            hargaLbl.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #4B3FC8;");
+            hargaLbl.setStyle("-fx-font-weight: bold; -fx-font-size: 15px; -fx-text-fill: #4B3FC8;");
 
-            Label kandLbl = new Label("Kandungan: " + prod.getKandungan());
+            Label kandLbl = new Label("\u2714 " + prod.getKandungan());
             kandLbl.setStyle("-fx-font-size: 11px; -fx-text-fill: #555;");
             kandLbl.setWrapText(true);
 
-            // ── Badge: Area Tubuh & Jenis Kulit ───────────────────────────
-            String areaTubuh  = prod.getAreaTubuh()  != null ? prod.getAreaTubuh()  : "Muka";
             String jenisKulit = prod.getJenisKulit() != null ? prod.getJenisKulit() : "Semua Jenis Kulit";
-
-            Label badgeArea = new Label("\uD83D\uDCCD " + areaTubuh);
-            badgeArea.setStyle(
-                    "-fx-font-size: 10px; -fx-text-fill: #3a6fc4;" +
-                            "-fx-background-color: #e8f0fe; -fx-background-radius: 20;" +
-                            "-fx-padding: 2 8 2 8;");
-
             Label badgeKulit = new Label("\uD83C\uDF3F " + jenisKulit);
             badgeKulit.setStyle(
                     "-fx-font-size: 10px; -fx-text-fill: #276a3f;" +
-                            "-fx-background-color: #e6f4ea; -fx-background-radius: 20;" +
-                            "-fx-padding: 2 8 2 8;");
+                    "-fx-background-color: #e6f4ea;" +
+                    "-fx-background-radius: 20; -fx-padding: 3 10 3 10;");
 
-            HBox badgeRow = new HBox(6, badgeArea, badgeKulit);
+            HBox badgeRow = new HBox(badgeKulit);
             badgeRow.setAlignment(Pos.CENTER_LEFT);
 
-            VBox infoBox = new VBox(4, nameLbl, katLbl, hargaLbl, kandLbl, badgeRow);
+            VBox infoBox = new VBox(6, nameLbl, katLbl, hargaLbl, kandLbl, badgeRow);
             infoBox.setAlignment(Pos.CENTER_LEFT);
+            infoBox.setPadding(new Insets(2, 0, 2, 0));
             HBox.setHgrow(infoBox, Priority.ALWAYS);
 
-            // ── Card container ────────────────────────────────────────────
-            HBox card = new HBox(12, thumbPane, infoBox);
+            // ── Card ─────────────────────────────────────────────────────
+            HBox card = new HBox(14, thumbPane, infoBox);
             card.setAlignment(Pos.CENTER_LEFT);
-            card.setPadding(new Insets(12));
-            card.setMaxWidth(460);
-            String styleNormal =
+            card.setPadding(new Insets(14));
+            card.setMaxWidth(500);
+
+            String sNormal =
                     "-fx-background-color: white;" +
-                            "-fx-border-color: #e0e0e0;" +
-                            "-fx-border-width: 1;" +
-                            "-fx-border-radius: 12;" +
-                            "-fx-background-radius: 12;" +
-                            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 6, 0, 0, 2);";
-            String styleHover =
+                    "-fx-border-color: #e8e8f0; -fx-border-width: 1;" +
+                    "-fx-border-radius: 14; -fx-background-radius: 14;" +
+                    "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.07), 8, 0, 0, 2);";
+            String sHover =
                     "-fx-background-color: #f8f7ff;" +
-                            "-fx-border-color: #4B3FC8;" +
-                            "-fx-border-width: 1;" +
-                            "-fx-border-radius: 12;" +
-                            "-fx-background-radius: 12;" +
-                            "-fx-effect: dropshadow(gaussian, rgba(75,63,200,0.12), 8, 0, 0, 3);";
-            card.setStyle(styleNormal);
-            card.setOnMouseEntered(e -> card.setStyle(styleHover));
-            card.setOnMouseExited(e -> card.setStyle(styleNormal));
+                    "-fx-border-color: #4B3FC8; -fx-border-width: 1.5;" +
+                    "-fx-border-radius: 14; -fx-background-radius: 14;" +
+                    "-fx-effect: dropshadow(gaussian, rgba(75,63,200,0.15), 10, 0, 0, 3);";
+
+            card.setStyle(sNormal);
+            card.setOnMouseEntered(e -> card.setStyle(sHover));
+            card.setOnMouseExited(e -> card.setStyle(sNormal));
 
             Label time = new Label(LocalTime.now().format(TIME_FMT));
             time.getStyleClass().add("timestamp");
 
-            VBox bubble = new VBox(4, card, time);
+            VBox bubble = new VBox(6, card, time);
             bubble.setAlignment(Pos.CENTER_LEFT);
 
             HBox row = new HBox(bubble);
             row.setAlignment(Pos.CENTER_LEFT);
+            row.setPadding(new Insets(2, 8, 2, 8));
             chatContainer.getChildren().add(row);
         }
         scrollToBottom();
@@ -243,12 +250,9 @@ public class ChatManager {
         chatScrollPane.setVvalue(1.0);
     }
 
-    public void tampilPesan(String msg) {
-        System.out.println(msg);
-    }
+    public void tampilPesan(String msg) { System.out.println(msg); }
 
-    @FXML
-    public void showChatPanel() {}
+    @FXML public void showChatPanel() {}
 
     @FXML
     public void showRiwayat() {
