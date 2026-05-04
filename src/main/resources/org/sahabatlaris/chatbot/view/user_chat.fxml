@@ -31,16 +31,6 @@
                         text="💬  Chat"
                         maxWidth="Infinity"
                         onAction="#showChatPanel"/>
-                <Button fx:id="btnInfoProduk"
-                        styleClass="chat-sidebar-btn"
-                        text="🛍  Info Produk"
-                        maxWidth="Infinity"
-                        onAction="#showInfoProduk"/>
-                <Button fx:id="btnInfoTokoUser"
-                        styleClass="chat-sidebar-btn"
-                        text="🏪  Info Toko"
-                        maxWidth="Infinity"
-                        onAction="#showInfoToko"/>
             </VBox>
 
             <VBox HBox.hgrow="ALWAYS" styleClass="chat-main">

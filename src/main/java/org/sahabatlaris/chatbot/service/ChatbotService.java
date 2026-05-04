@@ -7,30 +7,81 @@ import java.util.List;
 public class ChatbotService {
 
     private DatabaseService db = DatabaseService.getInstance();
+    private List<Produk> lastProdukResult = null;
+
+    /** Kembalikan hasil produk terakhir yang ditemukan (untuk ditampilkan sebagai card) */
+    public List<Produk> getLastProdukResult() {
+        List<Produk> tmp = lastProdukResult;
+        lastProdukResult = null;
+        return tmp;
+    }
 
     public String cariJawaban(String pesan) {
         String p = pesan.toLowerCase().trim();
+        lastProdukResult = null;
 
-        // ── Sapaan ───────────────────────────────────────────────────────────
+        // ── Sapaan ──────────────────────────────────────────────────────────
         if (p.matches(".*\\b(halo|hai|hello|hi|hei|selamat)\\b.*")) {
             return "Halo! Selamat datang di SahabatLaris \uD83D\uDC4B\n"
-                 + "Saya bisa membantu Anda mencari informasi produk skincare untuk kulit sensitif.\n\n"
-                 + "Coba tanyakan:\n"
-                 + "• Harga moisturizer berapa?\n"
-                 + "• Rekomendasi serum\n"
-                 + "• Produk untuk kulit sensitif";
+                    + "Saya bisa membantu Anda mencari informasi produk skincare.\n\n"
+                    + "Coba tanyakan:\n"
+                    + "\u2022 Tampilkan produk skincer untuk kulit sensitif?\n"
+                    + "\u2022 Rekomendasi serum\n"
+                    + "\u2022 Produk untuk kulit sensitif";
         }
 
-        // ── Bantuan ──────────────────────────────────────────────────────────
+        // ── Bantuan ─────────────────────────────────────────────────────────
         if (p.contains("bantuan") || p.contains("help") || p.contains("bisa apa")) {
             return "Saya bisa membantu Anda:\n"
-                 + "• Cek harga produk\n"
-                 + "• Cari produk berdasarkan kategori\n"
-                 + "• Rekomendasi untuk kulit sensitif\n\n"
-                 + "Contoh: 'harga toner berapa?' atau cukup ketik 'toner'";
+                    + "\u2022 Cek harga produk\n"
+                    + "\u2022 Cari produk berdasarkan kategori\n"
+                    + "\u2022 Rekomendasi berdasarkan jenis kulit\n"
+                    + "\u2022 Info lokasi & jam buka toko\n\n"
+                    + "Contoh: 'harga toner berapa?' atau cukup ketik 'toner'";
         }
 
-        // ── Deteksi kategori (langsung ketik nama kategori, dengan/tanpa "harga") ──
+        // ── Lokasi toko (Intent: Lokasi toko) ───────────────────────────────
+        if (p.contains("lokasi") || p.contains("alamat") || p.contains("dimana") || p.contains("di mana")) {
+            String[] info = db.getInfoToko();
+            return "\uD83D\uDCCD Lokasi " + info[0] + ":\n" + info[3] + "\n\uD83C\uDFD9\uFE0F " + info[4];
+        }
+
+        // ── Peta navigasi (Intent: Peta navigasi) ───────────────────────────
+        if (p.contains("maps") || p.contains("peta") || p.contains("navigasi") || p.contains("link")) {
+            String[] info = db.getInfoToko();
+            String link = info[6];
+            return "\uD83D\uDDFA\uFE0F Link Maps " + info[0] + ":\n" + (link.isEmpty() ? "Belum tersedia" : link);
+        }
+
+        // ── Jam operasional (Intent: Jam operasional) ────────────────────────
+        if (p.contains("jam") || p.contains("buka") || p.contains("tutup") || p.contains("operasional")) {
+            StringBuilder sb = new StringBuilder("\uD83D\uDD50 Jam Operasional Toko:\n\n");
+            List<String[]> jamList = db.getJamOperasional();
+            for (String[] jam : jamList) {
+                String status = "1".equals(jam[1]) ? "Buka " + jam[2] + " - " + jam[3] : "Tutup";
+                sb.append(String.format("%-8s : %s\n", jam[0], status));
+            }
+            return sb.toString().trim();
+        }
+
+        // ── Jenis kulit (Intent: Rekomendasi / Kecocokan produk) ─────────────
+        if (p.contains("kulit sensitif")) {
+            return cariProdukByJenisKulit("Kulit Sensitif");
+        }
+        if (p.contains("kulit berminyak") || p.contains("berminyak")) {
+            return cariProdukByJenisKulit("Kulit Berminyak");
+        }
+        if (p.contains("kulit kering") || p.contains("kering")) {
+            return cariProdukByJenisKulit("Kulit Kering");
+        }
+        if (p.contains("kulit berjerawat") || p.contains("berjerawat") || p.contains("jerawat")) {
+            return cariProdukByJenisKulit("Kulit Berjerawat");
+        }
+        if (p.contains("kulit menua") || p.contains("anti aging") || p.contains("penuaan")) {
+            return cariProdukByJenisKulit("Kulit Menua");
+        }
+
+        // ── Deteksi kategori ─────────────────────────────────────────────────
         if (mengandungKategori(p, "pelembab", "moisturizer", "lotion", "krim wajah")) {
             return cariProdukByKategori("Pelembab");
         }
@@ -41,7 +92,7 @@ public class ChatbotService {
             return cariProdukByKategori("Serum");
         }
         if (mengandungKategori(p, "pembersih", "face wash", "sabun muka", "cleanser")) {
-            return cariProdukByKategori("Pembersih muka");
+            return cariProdukByKategori("Pembersih Muka");
         }
         if (mengandungKategori(p, "sunscreen", "spf", "tabir surya", "sun protection")) {
             return cariProdukByKategori("Chemical Sunscreen");
@@ -50,49 +101,37 @@ public class ChatbotService {
             return cariProdukByKategori("Exfoliator");
         }
 
-        // ── Cari berdasarkan nama produk spesifik ────────────────────────────
-        List<Produk> cocok = getProdukMentioned(pesan);
-        if (!cocok.isEmpty()) {
-            StringBuilder sb = new StringBuilder("Informasi produk yang Anda cari:\n\n");
-            for (Produk prod : cocok) {
-                sb.append("\u2022 ").append(prod.getNamaProduk()).append("\n");
-                sb.append("  ").append(prod.getHargaFormatted()).append("\n");
-                sb.append("  Kandungan: ").append(prod.getKandungan()).append("\n\n");
-            }
-            return sb.toString().trim();
-        }
-
-        // ── Tampilkan semua produk ───────────────────────────────────────────
+        // ── Tampilkan semua produk ────────────────────────────────────────────
         if (p.contains("produk") || p.contains("ada apa")
                 || p.contains("semua") || p.contains("daftar")
                 || p.contains("list") || p.contains("apa saja")) {
             return cariSemuaProduk();
         }
 
-        // ── Rekomendasi kulit sensitif ───────────────────────────────────────
-        if (p.contains("rekomendasi") || p.contains("saran")
-                || p.contains("kulit sensitif") || p.contains("sensitif")) {
-            return "Untuk kulit sensitif, saya rekomendasikan produk berikut:\n\n"
-                 + cariSemuaProduk();
+        // ── Rekomendasi umum ─────────────────────────────────────────────────
+        if (p.contains("rekomendasi") || p.contains("saran")) {
+            return cariSemuaProduk();
         }
 
-        // ── Harga (tanpa menyebut kategori) ─────────────────────────────────
+        // ── Harga ────────────────────────────────────────────────────────────
         if (p.contains("harga") || p.contains("berapa") || p.contains("murah") || p.contains("mahal")) {
             return cariSemuaProduk();
         }
 
+        // ── Cek stok (Intent: Cek stok) ───────────────────────────────────────
+        if (p.contains("stok") || p.contains("tersedia") || p.contains("ada")) {
+            return "Silakan sebutkan nama produk yang ingin Anda cek ketersediaannya.";
+        }
+
         // ── Fallback ─────────────────────────────────────────────────────────
         return "Maaf, saya belum memahami pertanyaan Anda \uD83D\uDE4F\n\n"
-             + "Coba ketik salah satu:\n"
-             + "• Nama kategori: toner, serum, pelembab, sunscreen\n"
-             + "• 'rekomendasi produk'\n"
-             + "• 'semua produk'\n"
-             + "• Nama produk secara langsung";
+                + "Coba ketik salah satu:\n"
+                + "\u2022 Nama kategori: toner, serum, pelembab, sunscreen\n"
+                + "\u2022 Jenis kulit: kulit sensitif, kulit berminyak, dll\n"
+                + "\u2022 'lokasi toko' atau 'jam buka'\n"
+                + "\u2022 Nama produk secara langsung";
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
-
-    /** Cek apakah pesan mengandung salah satu keyword kategori. */
     private boolean mengandungKategori(String pesan, String... keywords) {
         for (String kw : keywords) {
             if (pesan.contains(kw)) return true;
@@ -103,35 +142,36 @@ public class ChatbotService {
     private String cariProdukByKategori(String kategori) {
         List<Produk> list = db.getProdukByKategori(kategori);
         if (list.isEmpty()) return "Tidak ada produk " + kategori + " tersedia saat ini.";
+        lastProdukResult = list;
+        return "Berikut produk " + kategori.toLowerCase() + " yang tersedia:";
+    }
 
-        StringBuilder sb = new StringBuilder(
-                "Berikut produk " + kategori.toLowerCase() + " yang tersedia:\n\n");
-        for (Produk prod : list) {
-            sb.append("\u2022 ").append(prod.getNamaProduk()).append("\n");
-            sb.append("  ").append(prod.getHargaFormatted()).append("\n");
-            sb.append("  Kandungan: ").append(prod.getKandungan()).append("\n\n");
+    private String cariProdukByJenisKulit(String jenisKulit) {
+        List<Produk> all = db.getAllProduk();
+        List<Produk> result = new ArrayList<>();
+        for (Produk p : all) {
+            String jk = p.getJenisKulit();
+            if (jk != null && (jk.equalsIgnoreCase(jenisKulit) || jk.equalsIgnoreCase("Semua Jenis Kulit"))) {
+                result.add(p);
+            }
         }
-        return sb.toString().trim();
+        if (result.isEmpty()) return "Tidak ada produk untuk " + jenisKulit + " saat ini.";
+        lastProdukResult = result;
+        return "Rekomendasi produk untuk " + jenisKulit + ":";
     }
 
     private String cariSemuaProduk() {
         List<Produk> list = db.getAllProduk();
         if (list.isEmpty()) return "Belum ada produk tersedia.";
-
-        StringBuilder sb = new StringBuilder("Berikut semua produk yang tersedia:\n\n");
-        for (Produk prod : list) {
-            sb.append("\u2022 ").append(prod.getNamaProduk())
-              .append(" - ").append(prod.getHargaFormatted()).append("\n");
-        }
-        return sb.toString().trim();
+        lastProdukResult = list;
+        return "Berikut semua produk yang tersedia:";
     }
 
     public List<Produk> getProdukMentioned(String pesan) {
         String pesanLower = pesan.toLowerCase();
         List<Produk> result = new ArrayList<>();
         for (Produk prod : db.getAllProduk()) {
-            if (pesanLower.contains(prod.getNamaProduk().toLowerCase())
-                    || pesanLower.contains(prod.getKategori().toLowerCase())) {
+            if (pesanLower.contains(prod.getNamaProduk().toLowerCase())) {
                 result.add(prod);
             }
         }

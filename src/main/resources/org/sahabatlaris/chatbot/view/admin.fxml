@@ -43,10 +43,12 @@
                     <TableView fx:id="tabelProduk" styleClass="produk-table" VBox.vgrow="ALWAYS">
                         <columns>
                             <TableColumn fx:id="colNo" text="No" prefWidth="50"/>
-                            <TableColumn fx:id="colNama" text="Nama Produk" prefWidth="240"/>
-                            <TableColumn fx:id="colKategori" text="Kategori" prefWidth="160"/>
-                            <TableColumn fx:id="colHarga" text="Harga" prefWidth="120"/>
-                            <TableColumn fx:id="colKandungan" text="Kandungan" prefWidth="240"/>
+                            <TableColumn fx:id="colNama" text="Nama Produk" prefWidth="200"/>
+                            <TableColumn fx:id="colKategori" text="Kategori" prefWidth="140"/>
+                            <TableColumn fx:id="colHarga" text="Harga" prefWidth="100"/>
+                            <TableColumn fx:id="colKandungan" text="Kandungan" prefWidth="200"/>
+                            <TableColumn fx:id="colJenisKulit" text="Jenis Kulit" prefWidth="120"/>
+                            <TableColumn fx:id="colAreaTubuh" text="Area Tubuh" prefWidth="100"/>
                             <TableColumn fx:id="colStatus" text="Status" prefWidth="90"/>
                             <TableColumn fx:id="colAksi" text="Aksi" prefWidth="140"/>
                         </columns>

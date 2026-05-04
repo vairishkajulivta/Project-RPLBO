@@ -25,6 +25,8 @@ public class AdminController {
     @FXML private TableColumn<Produk, String> colKategori;
     @FXML private TableColumn<Produk, String> colHarga;
     @FXML private TableColumn<Produk, String> colKandungan;
+    @FXML private TableColumn<Produk, String> colJenisKulit;
+    @FXML private TableColumn<Produk, String> colAreaTubuh;
     @FXML private TableColumn<Produk, String> colStatus;
     @FXML private TableColumn<Produk, Void> colAksi;
     @FXML private Label labelJumlahProduk;
@@ -49,12 +51,12 @@ public class AdminController {
     public void initialize() {
         setupTable();
         setupFilterKategori();
+        loadInfoToko();
         setupJamOperasional();
         tampilkanPanel();
     }
 
     private void setupTable() {
-        // No col
         colNo.setCellValueFactory(cellData -> {
             int idx = tabelProduk.getItems().indexOf(cellData.getValue()) + 1;
             return new SimpleStringProperty(String.valueOf(idx));
@@ -63,8 +65,10 @@ public class AdminController {
         colNama.setCellValueFactory(d -> d.getValue().namaProdukProperty());
         colKategori.setCellValueFactory(d -> d.getValue().kategoriProperty());
         colHarga.setCellValueFactory(d ->
-            new SimpleStringProperty(d.getValue().getHargaFormatted()));
+                new SimpleStringProperty(d.getValue().getHargaFormatted()));
         colKandungan.setCellValueFactory(d -> d.getValue().kandunganProperty());
+        colJenisKulit.setCellValueFactory(d -> d.getValue().jenisKulitProperty());
+        colAreaTubuh.setCellValueFactory(d -> d.getValue().areaTubuhProperty());
 
         colStatus.setCellFactory(col -> new TableCell<>() {
             @Override
@@ -96,8 +100,8 @@ public class AdminController {
                 btnHapus.setOnAction(e -> {
                     Produk p = getTableView().getItems().get(getIndex());
                     Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
-                        "Hapus produk \"" + p.getNamaProduk() + "\"?",
-                        ButtonType.YES, ButtonType.NO);
+                            "Hapus produk \"" + p.getNamaProduk() + "\"?",
+                            ButtonType.YES, ButtonType.NO);
                     confirm.setHeaderText(null);
                     confirm.showAndWait().ifPresent(btn -> {
                         if (btn == ButtonType.YES) {
@@ -124,31 +128,77 @@ public class AdminController {
         filterKategori.setOnAction(e -> tampilkanPanel());
     }
 
+    // ── Load data info toko dari DB ke field ──────────────────────────────
+    private void loadInfoToko() {
+        String[] info = layananData.getInfoToko();
+        if (namaToko != null)     namaToko.setText(info[0]);
+        if (taglineToko != null)  taglineToko.setText(info[1]);
+        if (deskripsiToko != null) deskripsiToko.setText(info[2]);
+        if (alamatToko != null)   alamatToko.setText(info[3]);
+        if (kotaToko != null)     kotaToko.setText(info[4]);
+        if (linkPeta != null)     linkPeta.setText(info[6]);
+    }
+
+    // ── Jam Operasional dengan toggle Buka/Tutup ─────────────────────────
     private void setupJamOperasional() {
         if (jamOperasionalContainer == null) return;
-        String[] hari = {"Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"};
-        for (String h : hari) {
+        jamOperasionalContainer.getChildren().clear();
+
+        List<String[]> jamList = layananData.getJamOperasional();
+        for (String[] jam : jamList) {
+            String hari = jam[0];
+            boolean buka = "1".equals(jam[1]);
+            String jamBuka = jam[2];
+            String jamTutup = jam[3];
+
             HBox row = new HBox(16);
             row.setAlignment(Pos.CENTER_LEFT);
 
-            Label lblHari = new Label(h);
+            Label lblHari = new Label(hari);
             lblHari.setMinWidth(70);
             lblHari.getStyleClass().add("field-label-sm");
 
-            CheckBox toggle = new CheckBox("Buka");
-            toggle.setSelected(true);
+            // Toggle Button Buka / Tutup
+            ToggleButton toggleBuka = new ToggleButton(buka ? "Buka" : "Tutup");
+            toggleBuka.setSelected(buka);
+            toggleBuka.setStyle(buka
+                    ? "-fx-background-color: #4B3FC8; -fx-text-fill: white; -fx-background-radius: 12; -fx-padding: 4 14; -fx-cursor: hand; -fx-font-size: 12px;"
+                    : "-fx-background-color: #ccc; -fx-text-fill: #555; -fx-background-radius: 12; -fx-padding: 4 14; -fx-cursor: hand; -fx-font-size: 12px;");
 
-            TextField jamBuka = new TextField("08.00");
-            jamBuka.setPrefWidth(70);
-            jamBuka.getStyleClass().add("info-field");
+            TextField tfBuka = new TextField(jamBuka);
+            tfBuka.setPrefWidth(70);
+            tfBuka.getStyleClass().add("info-field");
+            tfBuka.setDisable(!buka);
 
-            TextField jamTutup = new TextField("21.00");
-            jamTutup.setPrefWidth(70);
-            jamTutup.getStyleClass().add("info-field");
+            TextField tfTutup = new TextField(jamTutup);
+            tfTutup.setPrefWidth(70);
+            tfTutup.getStyleClass().add("info-field");
+            tfTutup.setDisable(!buka);
 
-            row.getChildren().addAll(lblHari, toggle, new Label("Buka"), jamBuka,
-                    new Label("Tutup"), jamTutup);
+            Label lblSampai = new Label("-");
+
+            toggleBuka.setOnAction(e -> {
+                boolean isOpen = toggleBuka.isSelected();
+                toggleBuka.setText(isOpen ? "Buka" : "Tutup");
+                toggleBuka.setStyle(isOpen
+                        ? "-fx-background-color: #4B3FC8; -fx-text-fill: white; -fx-background-radius: 12; -fx-padding: 4 14; -fx-cursor: hand; -fx-font-size: 12px;"
+                        : "-fx-background-color: #ccc; -fx-text-fill: #555; -fx-background-radius: 12; -fx-padding: 4 14; -fx-cursor: hand; -fx-font-size: 12px;");
+                tfBuka.setDisable(!isOpen);
+                tfTutup.setDisable(!isOpen);
+                // Simpan ke DB
+                layananData.simpanJamOperasional(hari, isOpen ? 1 : 0, tfBuka.getText(), tfTutup.getText());
+            });
+
+            row.getChildren().addAll(lblHari, toggleBuka, tfBuka, lblSampai, tfTutup);
             jamOperasionalContainer.getChildren().add(row);
+
+            // Simpan perubahan jam saat field berubah (listener)
+            tfBuka.focusedProperty().addListener((obs, o, n) -> {
+                if (!n) layananData.simpanJamOperasional(hari, toggleBuka.isSelected() ? 1 : 0, tfBuka.getText(), tfTutup.getText());
+            });
+            tfTutup.focusedProperty().addListener((obs, o, n) -> {
+                if (!n) layananData.simpanJamOperasional(hari, toggleBuka.isSelected() ? 1 : 0, tfBuka.getText(), tfTutup.getText());
+            });
         }
     }
 
@@ -191,8 +241,17 @@ public class AdminController {
 
     @FXML
     public void simpanInfoToko() {
+        layananData.simpanInfoToko(
+                namaToko != null ? namaToko.getText() : "",
+                taglineToko != null ? taglineToko.getText() : "",
+                deskripsiToko != null ? deskripsiToko.getText() : "",
+                alamatToko != null ? alamatToko.getText() : "",
+                kotaToko != null ? kotaToko.getText() : "",
+                "",
+                linkPeta != null ? linkPeta.getText() : ""
+        );
         Alert alert = new Alert(Alert.AlertType.INFORMATION,
-            "Info toko berhasil disimpan!", ButtonType.OK);
+                "Info toko berhasil disimpan!", ButtonType.OK);
         alert.setHeaderText(null);
         alert.showAndWait();
     }
@@ -224,7 +283,7 @@ public class AdminController {
         fNama.getStyleClass().add("info-field");
 
         ComboBox<String> fKategori = new ComboBox<>();
-        fKategori.getItems().addAll("Pelembab", "Toner", "Serum", "Pembersih muka",
+        fKategori.getItems().addAll("Pelembab", "Toner", "Serum", "Pembersih Muka",
                 "Chemical Sunscreen", "Tinted Sunscreen", "Exfoliator");
         fKategori.setPromptText("Pilih Kategori");
         fKategori.setMaxWidth(Double.MAX_VALUE);
@@ -239,6 +298,23 @@ public class AdminController {
         fKandungan.setWrapText(true);
         fKandungan.getStyleClass().add("info-textarea");
 
+        // ── Jenis Kulit ──────────────────────────────────────────────────
+        ComboBox<String> fJenisKulit = new ComboBox<>();
+        fJenisKulit.getItems().addAll("Semua Jenis Kulit", "Kulit Sensitif",
+                "Kulit Berminyak", "Kulit Kering", "Kulit Normal",
+                "Kulit Berjerawat", "Kulit Menua");
+        fJenisKulit.setPromptText("Pilih Jenis Kulit");
+        fJenisKulit.setMaxWidth(Double.MAX_VALUE);
+
+        ComboBox<String> fAreaTubuh = new ComboBox<>();
+        fAreaTubuh.getItems().addAll("Muka", "Badan", "Rambut", "Tangan & Kaki", "Bibir", "Mata");
+        fAreaTubuh.setPromptText("Pilih Area Tubuh");
+        fAreaTubuh.setMaxWidth(Double.MAX_VALUE);
+
+        TextField fGambarUrl = new TextField();
+        fGambarUrl.setPromptText("URL Gambar Produk (opsional)");
+        fGambarUrl.getStyleClass().add("info-field");
+
         CheckBox fAktif = new CheckBox("Aktif");
         fAktif.setSelected(true);
 
@@ -247,6 +323,9 @@ public class AdminController {
             fKategori.setValue(existingProduk.getKategori());
             fHarga.setText(String.valueOf(existingProduk.getHarga()));
             fKandungan.setText(existingProduk.getKandungan());
+            fJenisKulit.setValue(existingProduk.getJenisKulit());
+            fAreaTubuh.setValue(existingProduk.getAreaTubuh() != null ? existingProduk.getAreaTubuh() : "Muka");
+            fGambarUrl.setText(existingProduk.getGambarUrl());
             fAktif.setSelected(existingProduk.isAktif());
         }
 
@@ -271,19 +350,25 @@ public class AdminController {
             try { harga = Long.parseLong(fHarga.getText()); }
             catch (NumberFormatException ex) { errMsg.setText("Harga harus berupa angka."); return; }
 
+            String jenisKulit = fJenisKulit.getValue() != null ? fJenisKulit.getValue() : "Semua Jenis Kulit";
+            String areaTubuh = fAreaTubuh.getValue() != null ? fAreaTubuh.getValue() : "Muka";
+
             if (existingProduk == null) {
                 Produk p = new Produk(layananData.generateKodeProduk(), fNama.getText(),
-                    fKategori.getValue(), harga, fKandungan.getText(), fAktif.isSelected());
+                        fKategori.getValue(), harga, fKandungan.getText(), fAktif.isSelected(),
+                        jenisKulit, areaTubuh, fGambarUrl.getText());
                 layananData.tambahProduk(p);
             } else {
                 existingProduk.setNamaProduk(fNama.getText());
                 existingProduk.setKategori(fKategori.getValue());
                 existingProduk.setHarga(harga);
                 existingProduk.setKandungan(fKandungan.getText());
+                existingProduk.setJenisKulit(jenisKulit);
+                existingProduk.setAreaTubuh(areaTubuh);
+                existingProduk.setGambarUrl(fGambarUrl.getText());
                 existingProduk.setAktif(fAktif.isSelected());
                 layananData.updateProduk(existingProduk);
             }
-            // Refresh kategori combo
             filterKategori.getItems().setAll(layananData.getAllKategori());
             filterKategori.setValue("Semua Kategori");
             tampilkanPanel();
@@ -293,15 +378,18 @@ public class AdminController {
         btnRow.getChildren().addAll(btnBatal, btnSimpan);
 
         root.getChildren().addAll(title,
-            labeledField("Nama Produk", fNama),
-            labeledField("Kategori", fKategori),
-            labeledField("Harga", fHarga),
-            labeledField("Kandungan", fKandungan),
-            fAktif, errMsg, btnRow);
+                labeledField("Nama Produk", fNama),
+                labeledField("Kategori", fKategori),
+                labeledField("Harga", fHarga),
+                labeledField("Kandungan", fKandungan),
+                labeledField("Jenis Kulit", fJenisKulit),
+                labeledField("Area Tubuh", fAreaTubuh),
+                labeledField("URL Gambar", fGambarUrl),
+                fAktif, errMsg, btnRow);
 
-        Scene scene = new Scene(root, 380, 460);
+        Scene scene = new Scene(root, 400, 620);
         scene.getStylesheets().add(
-            getClass().getResource("/org/sahabatlaris/chatbot/css/styles.css").toExternalForm());
+                getClass().getResource("/org/sahabatlaris/chatbot/css/styles.css").toExternalForm());
         dialog.setScene(scene);
         dialog.showAndWait();
     }
@@ -314,3 +402,4 @@ public class AdminController {
         return box;
     }
 }
+

@@ -31,7 +31,7 @@ public class AppUI {
                 "/org/sahabatlaris/chatbot/view/user_chat.fxml",
                 "SahabatLaris - Chat", 1100, 700);
     }
-    
+
     private void loadScene(Stage stage, String fxmlPath,
                            String title, double w, double h) throws IOException {
         URL fxmlUrl = getClass().getResource(fxmlPath);
