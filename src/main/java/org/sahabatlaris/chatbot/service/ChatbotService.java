@@ -9,6 +9,7 @@ public class ChatbotService {
     private DatabaseService db = DatabaseService.getInstance();
     private List<Produk> lastProdukResult = null;
 
+    /** Kembalikan hasil produk terakhir yang ditemukan (untuk ditampilkan sebagai card) */
     public List<Produk> getLastProdukResult() {
         List<Produk> tmp = lastProdukResult;
         lastProdukResult = null;
@@ -18,6 +19,7 @@ public class ChatbotService {
     public String cariJawaban(String pesan) {
         String p = pesan.toLowerCase().trim();
         lastProdukResult = null;
+
 
         if (p.matches(".*\\b(halo|hai|hello|hi|hei|selamat)\\b.*")) {
             return "Halo! Selamat datang di SahabatLaris \uD83D\uDC4B\n"
@@ -33,6 +35,7 @@ public class ChatbotService {
                     + "\u2022 Apakah Somethinc Calm Down masih tersedia?";
         }
 
+
         if (p.contains("bantuan") || p.contains("help") || p.contains("bisa apa")) {
             return "Saya bisa membantu Anda:\n"
                     + "\u2022 Tampilkan produk berdasarkan jenis kulit\n"
@@ -41,7 +44,7 @@ public class ChatbotService {
                     + "\u2022 Info lokasi & jam buka toko\n"
                     + "\u2022 Rekomendasi produk berdasarkan kategori\n"
                     + "\u2022 Cek ketersediaan stok produk\n\n"
-                    + "Contoh: 'harga toner berapa?' atau cukup ketik 'toner'";
+                    + "Contoh: 'Tampilkan produk untuk kulit berminyak'";
         }
 
 
