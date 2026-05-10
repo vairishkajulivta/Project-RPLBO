@@ -54,12 +54,10 @@ public class AdminController {
     private ManagedDataService        layananData      = new ManagedDataService();
     private ObservableList<Produk>    produkObservable = FXCollections.observableArrayList();
 
-    // ── Direktori penyimpanan gambar produk ──────────────────────────────────
     private static final String IMAGE_DIR = "images/produk/";
 
     @FXML
     public void initialize() {
-        // Pastikan folder gambar ada saat aplikasi pertama kali dijalankan
         ensureImageDir();
         setupTable();
         setupFilterKategori();
@@ -476,8 +474,7 @@ public class AdminController {
 
             if (existingProduk == null) {
                 Produk p = new Produk(layananData.generateKodeProduk(),
-                        fNama.getText(), fKategori.getValue(),
-                        harga, fKandungan.getText(), fAktif.isSelected(),
+                        fNama.getText(), fKategori.getValue(), harga, fKandungan.getText(), fAktif.isSelected(),
                         jenisKulit, areaTubuh, gambarFinal);
                 layananData.tambahProduk(p);
             } else {
