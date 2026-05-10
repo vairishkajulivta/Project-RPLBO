@@ -43,8 +43,7 @@ public class ChatManager {
                 + "\u2022 Tampilkan produk skincare untuk kulit sensitif\n"
                 + "\u2022 Tampilkan deskripsi, kandungan, dan harga untuk Moisturizer\n"
                 + "\u2022 Apakah Wardah Hydra Rose cocok untuk kulit sensitif?\n"
-                + "\u2022 Dimana lokasi toko di daerah Sleman?\n"
-                + "\u2022 Tampilkan link maps untuk lokasi Tugu\n"
+                + "\u2022 Tampilkan link maps untuk lokasi "
                 + "\u2022 Tampilkan jam buka dan tutup toko\n"
                 + "\u2022 Tampilkan semua produk untuk kategori Sabun Wajah\n"
                 + "\u2022 Apakah Somethinc Calm Down masih tersedia?");
