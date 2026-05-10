@@ -54,12 +54,10 @@ public class AdminController {
     private ManagedDataService        layananData      = new ManagedDataService();
     private ObservableList<Produk>    produkObservable = FXCollections.observableArrayList();
 
-    // ── Direktori penyimpanan gambar produk ──────────────────────────────────
     private static final String IMAGE_DIR = "images/produk/";
 
     @FXML
     public void initialize() {
-        // Pastikan folder gambar ada saat aplikasi pertama kali dijalankan
         ensureImageDir();
         setupTable();
         setupFilterKategori();
@@ -68,7 +66,6 @@ public class AdminController {
         tampilkanPanel();
     }
 
-    /** Buat folder images/produk/ jika belum ada */
     private void ensureImageDir() {
         File dir = new File(IMAGE_DIR);
         if (!dir.exists()) dir.mkdirs();
@@ -263,15 +260,16 @@ public class AdminController {
     }
 
     // ════════════════════════════════════════════════════════════════════════
-    //  FORM TAMBAH / UBAH PRODUK  (dengan fitur Upload Gambar)
+    //  FORM TAMBAH / UBAH PRODUK
+    //  Gambar bisa diisi via:
+    //    (A) Upload file lokal  — disalin ke images/produk/
+    //    (B) Paste URL gambar   — langsung simpan URL-nya
     // ════════════════════════════════════════════════════════════════════════
-
     private void showFormProduk(Produk existingProduk) {
         Stage dialog = new Stage();
         dialog.initModality(Modality.APPLICATION_MODAL);
         dialog.setTitle(existingProduk == null ? "Tambah Produk" : "Ubah Produk");
 
-        // ── ScrollPane supaya form tidak terpotong di layar kecil ────────────
         VBox root = new VBox(14);
         root.setPadding(new Insets(24));
         root.setStyle("-fx-background-color: white;");
@@ -315,14 +313,15 @@ public class AdminController {
         CheckBox fAktif = new CheckBox("Aktif");
         fAktif.setSelected(true);
 
-        // ── Gambar: preview + tombol Upload ─────────────────────────────────
-        // imagePath menyimpan path relatif (images/produk/xxx.jpg)
+        // ════════════════════════════════════════════════════════════════════
+        //  BAGIAN GAMBAR — Tab: Upload File | URL
+        // ════════════════════════════════════════════════════════════════════
         final String[] imagePath = {""};
 
-        // Preview thumbnail
+        // ── Preview thumbnail (bersama untuk kedua tab) ──────────────────────
         StackPane previewPane = new StackPane();
-        previewPane.setMinSize(100, 100);
-        previewPane.setMaxSize(100, 100);
+        previewPane.setMinSize(110, 110);
+        previewPane.setMaxSize(110, 110);
         previewPane.setStyle(
                 "-fx-background-color:#f0eeff;" +
                 "-fx-background-radius:10;" +
@@ -336,62 +335,78 @@ public class AdminController {
         noImgLbl.setAlignment(Pos.CENTER);
 
         ImageView previewImg = new ImageView();
-        previewImg.setFitWidth(100);
-        previewImg.setFitHeight(100);
+        previewImg.setFitWidth(110);
+        previewImg.setFitHeight(110);
         previewImg.setPreserveRatio(true);
-        Rectangle clip = new Rectangle(100, 100);
+        Rectangle clip = new Rectangle(110, 110);
         clip.setArcWidth(16); clip.setArcHeight(16);
         previewImg.setClip(clip);
         previewImg.setVisible(false);
 
         previewPane.getChildren().addAll(noImgLbl, previewImg);
 
-        // Nama file yang ditampilkan
-        Label fileNameLbl = new Label("Tidak ada file dipilih");
-        fileNameLbl.setStyle("-fx-font-size:11px;-fx-text-fill:#888;");
-
-        // Tombol upload
-        Button btnUpload = new Button("📁  Pilih Gambar...");
-        btnUpload.setStyle(
-                "-fx-background-color:#4B3FC8;-fx-text-fill:white;" +
-                "-fx-font-size:12px;-fx-padding:6 14;" +
-                "-fx-background-radius:6;-fx-cursor:hand;");
-
-        // Tombol hapus gambar
-        Button btnHapusGambar = new Button("✕ Hapus Gambar");
-        btnHapusGambar.setStyle(
-                "-fx-background-color:#e53e3e;-fx-text-fill:white;" +
-                "-fx-font-size:11px;-fx-padding:5 10;" +
-                "-fx-background-radius:6;-fx-cursor:hand;");
-        btnHapusGambar.setVisible(false);
-
-        // Helper: update preview dari path file
+        // ── Helper: load preview dari string path/URL ────────────────────────
         Runnable updatePreview = () -> {
             String p = imagePath[0];
             if (p == null || p.isBlank()) {
                 previewImg.setVisible(false);
                 noImgLbl.setVisible(true);
-                btnHapusGambar.setVisible(false);
                 return;
             }
             try {
-                File imgFile = new File(p);
-                if (imgFile.exists()) {
-                    previewImg.setImage(new Image(imgFile.toURI().toString(), 100, 100, true, true));
+                String url;
+                if (p.startsWith("http://") || p.startsWith("https://") || p.startsWith("file:")) {
+                    url = p;
                 } else {
-                    // Coba sebagai URL langsung (http/https)
-                    previewImg.setImage(new Image(p, 100, 100, true, true, true));
+                    File f = new File(p);
+                    url = f.exists() ? f.toURI().toString() : p;
                 }
-                previewImg.setVisible(true);
-                noImgLbl.setVisible(false);
-                btnHapusGambar.setVisible(true);
+                Image img = new Image(url, 110, 110, true, true, false);
+                if (!img.isError()) {
+                    previewImg.setImage(img);
+                    previewImg.setVisible(true);
+                    noImgLbl.setVisible(false);
+                } else {
+                    previewImg.setVisible(false);
+                    noImgLbl.setVisible(true);
+                }
             } catch (Exception ex) {
                 previewImg.setVisible(false);
                 noImgLbl.setVisible(true);
             }
         };
 
-        // Aksi klik Upload
+        // ── Label info gambar saat ini ────────────────────────────────────────
+        Label fileNameLbl = new Label("Tidak ada gambar dipilih");
+        fileNameLbl.setStyle("-fx-font-size:11px;-fx-text-fill:#888;-fx-wrap-text:true;");
+        fileNameLbl.setWrapText(true);
+        fileNameLbl.setMaxWidth(250);
+
+        // ── TAB B: Input URL Gambar (deklarasi di sini agar bisa dipakai di lambda atas) ──
+        TextField urlField = new TextField();
+        urlField.setPromptText("https://example.com/gambar.jpg  atau  path/lokal/gambar.jpg");
+        urlField.getStyleClass().add("info-field");
+        urlField.setMaxWidth(Double.MAX_VALUE);
+
+        // ── TAB A: Upload File Lokal ─────────────────────────────────────────
+        Button btnUpload = new Button("📁  Pilih dari Komputer...");
+        btnUpload.setStyle(
+                "-fx-background-color:#4B3FC8;-fx-text-fill:white;" +
+                "-fx-font-size:12px;-fx-padding:7 14;" +
+                "-fx-background-radius:6;-fx-cursor:hand;");
+
+        Button btnHapusGambar = new Button("✕ Hapus");
+        btnHapusGambar.setStyle(
+                "-fx-background-color:#e53e3e;-fx-text-fill:white;" +
+                "-fx-font-size:11px;-fx-padding:6 10;" +
+                "-fx-background-radius:6;-fx-cursor:hand;");
+
+        HBox uploadRow = new HBox(8, btnUpload, btnHapusGambar);
+        uploadRow.setAlignment(Pos.CENTER_LEFT);
+
+        VBox uploadTab = new VBox(8, uploadRow, fileNameLbl);
+        uploadTab.setPadding(new Insets(10, 0, 0, 0));
+
         btnUpload.setOnAction(e -> {
             FileChooser fc = new FileChooser();
             fc.setTitle("Pilih Gambar Produk");
@@ -402,32 +417,84 @@ public class AdminController {
             File chosen = fc.showOpenDialog(dialog);
             if (chosen != null) {
                 try {
-                    // Salin ke folder images/produk/ dengan nama unik
-                    String ext  = getExtension(chosen.getName());
                     String dest = IMAGE_DIR + sanitizeFileName(chosen.getName());
                     Files.copy(chosen.toPath(), Paths.get(dest), StandardCopyOption.REPLACE_EXISTING);
                     imagePath[0] = dest;
-                    fileNameLbl.setText(chosen.getName());
+                    fileNameLbl.setText("📁 " + chosen.getName());
+                    urlField.setText(""); // kosongkan URL jika ada
                     updatePreview.run();
                 } catch (IOException ex) {
-                    new Alert(Alert.AlertType.ERROR,
-                            "Gagal menyalin gambar:\n" + ex.getMessage(),
-                            ButtonType.OK).showAndWait();
+                    new Alert(Alert.AlertType.ERROR, "Gagal menyalin gambar:\n" + ex.getMessage(), ButtonType.OK).showAndWait();
                 }
             }
         });
 
         btnHapusGambar.setOnAction(e -> {
             imagePath[0] = "";
-            fileNameLbl.setText("Tidak ada file dipilih");
+            fileNameLbl.setText("Tidak ada gambar dipilih");
+            urlField.setText("");
             updatePreview.run();
         });
 
-        HBox uploadRow = new HBox(10, btnUpload, btnHapusGambar);
-        uploadRow.setAlignment(Pos.CENTER_LEFT);
+        Button btnLoadUrl = new Button("🔍 Muat Gambar");
+        btnLoadUrl.setStyle(
+                "-fx-background-color:#1D9E75;-fx-text-fill:white;" +
+                "-fx-font-size:12px;-fx-padding:7 14;" +
+                "-fx-background-radius:6;-fx-cursor:hand;");
 
-        VBox gambarBox = new VBox(8, previewPane, uploadRow, fileNameLbl);
-        gambarBox.setAlignment(Pos.CENTER_LEFT);
+        Label urlInfoLbl = new Label("Masukkan URL gambar dari internet atau path file di komputer.");
+        urlInfoLbl.setStyle("-fx-font-size:11px;-fx-text-fill:#888;-fx-wrap-text:true;");
+        urlInfoLbl.setWrapText(true);
+
+        HBox urlBtnRow = new HBox(8, btnLoadUrl);
+        urlBtnRow.setAlignment(Pos.CENTER_LEFT);
+
+        VBox urlTab = new VBox(8, urlField, urlBtnRow, urlInfoLbl);
+        urlTab.setPadding(new Insets(10, 0, 0, 0));
+
+        btnLoadUrl.setOnAction(e -> {
+            String url = urlField.getText().trim();
+            if (url.isEmpty()) return;
+            imagePath[0] = url;
+            fileNameLbl.setText("🌐 " + (url.length() > 45 ? url.substring(0, 45) + "…" : url));
+            updatePreview.run();
+        });
+
+        // Juga load saat tekan Enter di url field
+        urlField.setOnAction(e -> btnLoadUrl.fire());
+
+        // ── Gabung preview + kedua metode dalam satu HBox ────────────────────
+        // Kiri: preview | Kanan: upload tab + separator + url tab
+        VBox metodBox = new VBox(0);
+
+        // Header separator upload
+        Label lblUploadHeader = new Label("Upload File");
+        lblUploadHeader.setStyle(
+                "-fx-font-size:11px;-fx-font-weight:bold;-fx-text-fill:#4B3FC8;" +
+                "-fx-background-color:#f0eeff;-fx-background-radius:6;" +
+                "-fx-padding:4 10;");
+
+        Separator sepGambar = new Separator();
+        sepGambar.setPadding(new Insets(6, 0, 6, 0));
+
+        Label lblUrlHeader = new Label("Atau Gunakan URL Gambar");
+        lblUrlHeader.setStyle(
+                "-fx-font-size:11px;-fx-font-weight:bold;-fx-text-fill:#1D9E75;" +
+                "-fx-background-color:#e8f8f3;-fx-background-radius:6;" +
+                "-fx-padding:4 10;");
+
+        metodBox.getChildren().addAll(lblUploadHeader, uploadTab, sepGambar, lblUrlHeader, urlTab);
+        metodBox.setPadding(new Insets(0, 0, 0, 14));
+        HBox.setHgrow(metodBox, Priority.ALWAYS);
+
+        HBox gambarRow = new HBox(12, previewPane, metodBox);
+        gambarRow.setAlignment(Pos.TOP_LEFT);
+        gambarRow.setPadding(new Insets(2, 0, 2, 0));
+        gambarRow.setStyle(
+                "-fx-background-color:#fafafa;" +
+                "-fx-border-color:#e8e8f0;-fx-border-width:1;" +
+                "-fx-border-radius:10;-fx-background-radius:10;" +
+                "-fx-padding:12;");
 
         // ── Isi form jika mode Edit ──────────────────────────────────────────
         if (existingProduk != null) {
@@ -441,8 +508,13 @@ public class AdminController {
             String existingImg = existingProduk.getGambarUrl();
             if (existingImg != null && !existingImg.isBlank()) {
                 imagePath[0] = existingImg;
-                // Tampilkan nama file saja
-                fileNameLbl.setText(new File(existingImg).getName());
+                if (existingImg.startsWith("http://") || existingImg.startsWith("https://")) {
+                    urlField.setText(existingImg);
+                    fileNameLbl.setText("🌐 " + (existingImg.length() > 45
+                            ? existingImg.substring(0, 45) + "…" : existingImg));
+                } else {
+                    fileNameLbl.setText("📁 " + new File(existingImg).getName());
+                }
                 updatePreview.run();
             }
         }
@@ -452,9 +524,10 @@ public class AdminController {
         errMsg.setStyle("-fx-text-fill:#e53e3e;-fx-font-size:12px;");
 
         Button btnBatal  = new Button("Batal");
-        Button btnSimpan = new Button("Simpan");
-        btnBatal.setStyle("-fx-background-color:#888;-fx-text-fill:white;-fx-padding:6 16;-fx-background-radius:4;-fx-cursor:hand;");
+        Button btnSimpan = new Button("Simpan Produk");
+        btnBatal.setStyle("-fx-background-color:#888;-fx-text-fill:white;-fx-padding:7 18;-fx-background-radius:6;-fx-cursor:hand;");
         btnSimpan.getStyleClass().add("btn-tambah");
+        btnSimpan.setPadding(new Insets(7, 18, 7, 18));
 
         HBox btnRow = new HBox(12, btnBatal, btnSimpan);
         btnRow.setAlignment(Pos.CENTER_RIGHT);
@@ -470,8 +543,14 @@ public class AdminController {
             try { harga = Long.parseLong(fHarga.getText()); }
             catch (NumberFormatException ex) { errMsg.setText("Harga harus berupa angka."); return; }
 
-            String jenisKulit = fJenisKulit.getValue() != null ? fJenisKulit.getValue() : "Semua Jenis Kulit";
-            String areaTubuh  = fAreaTubuh.getValue()  != null ? fAreaTubuh.getValue()  : "Muka";
+            // Jika ada URL di field URL, prioritaskan URL itu
+            String urlInput = urlField.getText().trim();
+            if (!urlInput.isEmpty()) {
+                imagePath[0] = urlInput;
+            }
+
+            String jenisKulit  = fJenisKulit.getValue() != null ? fJenisKulit.getValue() : "Semua Jenis Kulit";
+            String areaTubuh   = fAreaTubuh.getValue()  != null ? fAreaTubuh.getValue()  : "Muka";
             String gambarFinal = imagePath[0];
 
             if (existingProduk == null) {
@@ -500,13 +579,13 @@ public class AdminController {
         // ── Susun form ───────────────────────────────────────────────────────
         root.getChildren().addAll(
                 titleLbl,
-                labeledField("Nama Produk", fNama),
-                labeledField("Kategori",    fKategori),
-                labeledField("Harga",       fHarga),
-                labeledField("Kandungan",   fKandungan),
-                labeledField("Jenis Kulit", fJenisKulit),
-                labeledField("Area Tubuh",  fAreaTubuh),
-                labeledField("Gambar Produk", gambarBox),
+                labeledField("Nama Produk",  fNama),
+                labeledField("Kategori",     fKategori),
+                labeledField("Harga (Rp)",   fHarga),
+                labeledField("Kandungan",    fKandungan),
+                labeledField("Jenis Kulit",  fJenisKulit),
+                labeledField("Area Tubuh",   fAreaTubuh),
+                labeledField("Gambar Produk", gambarRow),
                 fAktif, errMsg, btnRow
         );
 
@@ -514,7 +593,7 @@ public class AdminController {
         scroll.setFitToWidth(true);
         scroll.setStyle("-fx-background-color:white;-fx-border-color:transparent;");
 
-        Scene scene = new Scene(scroll, 420, 680);
+        Scene scene = new Scene(scroll, 480, 720);
         scene.getStylesheets().add(
                 getClass().getResource("/org/sahabatlaris/chatbot/css/styles.css").toExternalForm());
         dialog.setScene(scene);
@@ -529,15 +608,12 @@ public class AdminController {
         return box;
     }
 
-    // ── Helper: ambil ekstensi file ──────────────────────────────────────────
     private String getExtension(String filename) {
         int dot = filename.lastIndexOf('.');
         return (dot >= 0) ? filename.substring(dot) : "";
     }
 
-    // ── Helper: bersihkan nama file agar aman sebagai path ──────────────────
     private String sanitizeFileName(String original) {
-        // Ganti spasi dan karakter khusus, tambah timestamp supaya unik
         String base = original.replaceAll("[^a-zA-Z0-9._\\-]", "_");
         String ext  = getExtension(base);
         String name = base.substring(0, base.length() - ext.length());
