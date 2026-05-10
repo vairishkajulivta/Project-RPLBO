@@ -1,92 +1,195 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.geometry.Insets?>
+<?import javafx.scene.shape.Circle?>
 
-<BorderPane xmlns="http://javafx.com/javafx/17"
-            xmlns:fx="http://javafx.com/fxml/1"
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
             fx:controller="org.sahabatlaris.chatbot.Controller.ChatManager"
-            styleClass="chat-root"
+            styleClass="root-pane"
             prefWidth="1100" prefHeight="700">
 
-    <!-- ══════════════════ TOPBAR ══════════════════ -->
+    <!-- ═══════════════════════════════════════════════════════════
+         TOP NAVBAR
+    ════════════════════════════════════════════════════════════ -->
     <top>
-        <HBox styleClass="chat-navbar" alignment="CENTER_LEFT" spacing="14">
-            <StackPane styleClass="chat-logo-circle">
-                <Label styleClass="chat-logo-icon" text="💬"/>
-            </StackPane>
-            <VBox spacing="1">
-                <Label styleClass="chat-navbar-brand" text="SahabatLarisBot"/>
-                <Label styleClass="chat-status-label" text="● Online · Siap membantu"/>
-            </VBox>
-            <Region HBox.hgrow="ALWAYS"/>
-            <Button styleClass="btn-riwayat" text="🕐  Riwayat Chat" onAction="#showRiwayat"/>
-            <Button styleClass="btn-bantuan" text="📖  Bantuan"      onAction="#showBantuan"/>
+        <HBox alignment="CENTER_LEFT" spacing="0" minHeight="64" prefHeight="64"
+              style="-fx-background-color: white;
+                     -fx-border-color: #e8e8f0;
+                     -fx-border-width: 0 0 1 0;
+                     -fx-padding: 0 16 0 16;">
+
+            <!-- Kiri: Avatar + Nama Bot -->
+            <HBox alignment="CENTER_LEFT" spacing="12" HBox.hgrow="ALWAYS">
+
+                <!-- Avatar lingkaran ungu -->
+                <StackPane minWidth="42" minHeight="42" maxWidth="42" maxHeight="42"
+                           style="-fx-background-color: #4B3FC8; -fx-background-radius: 21;">
+                    <Label text="SL"
+                           style="-fx-text-fill: white; -fx-font-size: 15px; -fx-font-weight: bold;"/>
+                </StackPane>
+
+                <VBox spacing="2" alignment="CENTER_LEFT">
+                    <Label text="SahabatLarisBot"
+                           style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #1a1a2e;"/>
+                    <HBox alignment="CENTER_LEFT" spacing="5">
+                        <Circle fx:id="onlineDot" radius="4" fill="#22c55e"/>
+                        <Label fx:id="onlineLabel" text="Online · Siap membantu"
+                               style="-fx-font-size: 11px; -fx-text-fill: #22c55e;"/>
+                    </HBox>
+                </VBox>
+            </HBox>
+
+            <!-- Kanan: Tombol Riwayat Chat + Bantuan -->
+            <HBox alignment="CENTER_RIGHT" spacing="8">
+
+                <Button text="🕐  Riwayat Chat"
+                        onAction="#showRiwayat"
+                        style="-fx-background-color: #f4f3ff;
+                               -fx-text-fill: #4B3FC8;
+                               -fx-font-size: 12px;
+                               -fx-font-weight: bold;
+                               -fx-background-radius: 20;
+                               -fx-padding: 8 16;
+                               -fx-cursor: hand;
+                               -fx-border-color: #e0defc;
+                               -fx-border-width: 1;
+                               -fx-border-radius: 20;"/>
+
+                <Button text="❓  Bantuan"
+                        onAction="#showBantuan"
+                        style="-fx-background-color: #f4f3ff;
+                               -fx-text-fill: #4B3FC8;
+                               -fx-font-size: 12px;
+                               -fx-font-weight: bold;
+                               -fx-background-radius: 20;
+                               -fx-padding: 8 16;
+                               -fx-cursor: hand;
+                               -fx-border-color: #e0defc;
+                               -fx-border-width: 1;
+                               -fx-border-radius: 20;"/>
+            </HBox>
         </HBox>
     </top>
 
-    <!-- ══════════════════ BODY ══════════════════ -->
+    <!-- ═══════════════════════════════════════════════════════════
+         BODY: Sidebar Kiri + Area Chat
+    ════════════════════════════════════════════════════════════ -->
     <center>
         <HBox>
 
-            <!-- ── SIDEBAR KIRI ── -->
-            <VBox styleClass="chat-sidebar" prefWidth="220" spacing="0">
+            <!-- ────────────────────────────────────────────────────
+                 SIDEBAR KIRI — Navigasi + Riwayat
+            ─────────────────────────────────────────────────────── -->
+            <VBox prefWidth="200" minWidth="180" maxWidth="220" spacing="0"
+                  style="-fx-background-color: white;
+                         -fx-border-color: #e8e8f0;
+                         -fx-border-width: 0 1 0 0;">
 
-                <Button fx:id="btnChat"
-                        styleClass="chat-sidebar-btn-active"
-                        text="💬  Chat"
-                        maxWidth="Infinity"
-                        onAction="#showChatPanel"/>
+                <!-- Item navigasi: Chat (aktif, highlight ungu kiri) -->
+                <HBox alignment="CENTER_LEFT" spacing="10" minHeight="40"
+                      style="-fx-background-color: #f0eeff;
+                             -fx-border-color: #4B3FC8;
+                             -fx-border-width: 0 0 0 3;
+                             -fx-padding: 10 12 10 14;
+                             -fx-cursor: hand;">
+                    <Label text="💬" style="-fx-font-size: 14px;"/>
+                    <Label text="Chat"
+                           style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #4B3FC8;"/>
+                </HBox>
 
-                <Separator styleClass="sidebar-sep"/>
+                <!-- Label "TERAKHIR DITANYA" -->
+                <Label text="TERAKHIR DITANYA"
+                       style="-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: #bbb; -fx-padding: 4 12 2 12;"/>
 
-                <Label styleClass="sidebar-section-title" text="TERAKHIR DITANYA">
-                    <VBox.margin><Insets top="10" left="16" bottom="6"/></VBox.margin>
+                <!-- Daftar riwayat (diisi secara programatik) -->
+                <ScrollPane fitToWidth="true" hbarPolicy="NEVER"
+                            style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;"
+                            VBox.vgrow="ALWAYS">
+                    <VBox fx:id="riwayatListContainer" spacing="0"
+                          style="-fx-background-color: transparent;"/>
+                </ScrollPane>
+
+                <!-- Label "Belum ada riwayat" (awalnya visible, disembunyikan jika ada data) -->
+                <Label fx:id="riwayatEmptyLabel"
+                       text="Belum ada riwayat"
+                       visible="true"
+                       style="-fx-font-size: 11px; -fx-text-fill: #ccc; -fx-padding: 8 12;">
                 </Label>
 
-                <VBox fx:id="sidebarRiwayatContainer" spacing="3">
-                    <padding><Insets left="8" right="8"/></padding>
-                </VBox>
-
+                <!-- Spacer -->
                 <Region VBox.vgrow="ALWAYS"/>
 
-                <Button styleClass="btn-hapus-riwayat"
+                <!-- Separator -->
+                <Separator style="-fx-background-color: #eeeef5;"/>
+
+                <!-- Tombol Hapus Riwayat -->
+                <Button fx:id="btnHapusRiwayat"
                         text="🗑  Hapus Riwayat"
+                        onAction="#hapusRiwayatSidebar"
                         maxWidth="Infinity"
-                        onAction="#hapusRiwayat">
-                    <VBox.margin><Insets bottom="12" left="8" right="8"/></VBox.margin>
+                        style="-fx-background-color: transparent; -fx-text-fill: #e53e3e;
+                               -fx-font-size: 12px; -fx-font-weight: bold;
+                               -fx-padding: 12 16; -fx-cursor: hand;
+                               -fx-alignment: CENTER_LEFT; -fx-border-color: transparent;">
+                    <VBox.margin><Insets top="0"/></VBox.margin>
                 </Button>
             </VBox>
 
-            <!-- ── MAIN CHAT ── -->
-            <VBox HBox.hgrow="ALWAYS" styleClass="chat-main">
+            <!-- ────────────────────────────────────────────────────
+                 AREA CHAT UTAMA
+            ─────────────────────────────────────────────────────── -->
+            <VBox HBox.hgrow="ALWAYS" styleClass="chat-area">
 
+                <!-- Scroll area pesan -->
                 <ScrollPane fx:id="chatScrollPane"
-                            styleClass="chat-scroll"
                             fitToWidth="true"
-                            VBox.vgrow="ALWAYS">
-                    <VBox fx:id="chatContainer"
-                          styleClass="chat-container"
-                          spacing="14">
-                        <padding>
-                            <Insets top="20" right="20" bottom="20" left="20"/>
-                        </padding>
-                    </VBox>
+                            hbarPolicy="NEVER"
+                            VBox.vgrow="ALWAYS"
+                            style="-fx-background-color: #f7f7fb; -fx-background: #f7f7fb; -fx-border-color: transparent;">
+                    <VBox fx:id="chatContainer" spacing="6"
+                          style="-fx-background-color: #f7f7fb; -fx-padding: 16 16 8 16;"/>
                 </ScrollPane>
 
-                <HBox styleClass="chat-input-bar" alignment="CENTER" spacing="12">
-                    <padding>
-                        <Insets top="14" right="20" bottom="14" left="20"/>
-                    </padding>
+                <!-- Area input pesan -->
+                <HBox alignment="CENTER" spacing="12"
+                      style="-fx-background-color: white;
+                             -fx-border-color: #e8e8f0;
+                             -fx-border-width: 1 0 0 0;
+                             -fx-padding: 14 16 14 16;
+                             -fx-min-height: 64;
+                             -fx-pref-height: 64;">
+
                     <TextField fx:id="inputField"
-                               styleClass="chat-input"
                                promptText="Ketik nama produk atau pertanyaan..."
                                HBox.hgrow="ALWAYS"
-                               onAction="#prosesPesan"/>
-                    <Button styleClass="btn-send"
-                            text="➤"
-                            onAction="#prosesPesan"/>
+                               onAction="#prosesPesan"
+                               style="-fx-background-color: #f7f7fb;
+                                      -fx-background-radius: 24;
+                                      -fx-border-color: #e0e0ef;
+                                      -fx-border-radius: 24;
+                                      -fx-border-width: 1;
+                                      -fx-padding: 12 18;
+                                      -fx-font-size: 13px;
+                                      -fx-pref-height: 40;
+                                      -fx-text-fill: #1a1a2e;
+                                      -fx-prompt-text-fill: #aaa;"/>
+
+                    <Button text="➤"
+                            onAction="#prosesPesan"
+                            style="-fx-background-color: #4B3FC8;
+                                   -fx-text-fill: white;
+                                   -fx-font-size: 16px;
+                                   -fx-font-weight: bold;
+                                   -fx-background-radius: 50;
+                                   -fx-min-width: 40;
+                                   -fx-min-height: 40;
+                                   -fx-max-width: 40;
+                                   -fx-max-height: 40;
+                                   -fx-cursor: hand;
+                                   -fx-padding: 0;"/>
                 </HBox>
             </VBox>
 

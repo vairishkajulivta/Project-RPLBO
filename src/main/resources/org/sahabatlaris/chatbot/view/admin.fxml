@@ -39,6 +39,8 @@
                         <Region HBox.hgrow="ALWAYS"/>
                         <ComboBox fx:id="filterKategori" styleClass="combo-kategori" promptText="Semua Kategori"/>
                         <Button text="+ Tambah Produk" styleClass="btn-tambah" onAction="#showTambahProduk"/>
+                        <Button text="🖼 Import Gambar Massal" styleClass="btn-tambah" onAction="#importGambarMassal"
+                                style="-fx-background-color:#1D9E75;"/>
                     </HBox>
                     <TableView fx:id="tabelProduk" styleClass="produk-table" VBox.vgrow="ALWAYS">
                         <columns>

@@ -22,7 +22,9 @@ import javafx.stage.Stage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
+import java.util.ArrayList;
 import java.util.List;
+import javafx.stage.DirectoryChooser;
 
 public class AdminController {
 
@@ -55,6 +57,21 @@ public class AdminController {
     private ObservableList<Produk>    produkObservable = FXCollections.observableArrayList();
 
     private static final String IMAGE_DIR = "images/produk/";
+
+    /** Resolusi path gambar ke absolute path agar bisa diload dari mana saja */
+    private static String resolveImagePath(String rawPath) {
+        if (rawPath == null || rawPath.isBlank()) return "";
+        // URL internet langsung dikembalikan
+        if (rawPath.startsWith("http://") || rawPath.startsWith("https://")
+                || rawPath.startsWith("file:")) return rawPath;
+        // Path relatif → resolve dari working dir
+        File f = new File(rawPath);
+        if (f.isAbsolute()) return f.toURI().toString();
+        // Coba relatif dari working dir
+        File abs = new File(System.getProperty("user.dir"), rawPath);
+        if (abs.exists()) return abs.toURI().toString();
+        return rawPath; // fallback
+    }
 
     @FXML
     public void initialize() {
@@ -223,6 +240,131 @@ public class AdminController {
     }
 
     @FXML public void showTambahProduk() { showFormProduk(null); }
+
+    /**
+     * Import Gambar Massal:
+     * Admin pilih SATU FOLDER berisi file gambar.
+     * Program mencocokkan nama file (tanpa ekstensi) dengan nama produk secara fuzzy,
+     * lalu menyalin gambar ke images/produk/ dan menyimpan path-nya ke setiap produk.
+     * Hasil matching ditampilkan dalam dialog ringkasan.
+     */
+    @FXML
+    public void importGambarMassal() {
+        DirectoryChooser dc = new DirectoryChooser();
+        dc.setTitle("Pilih Folder Berisi Gambar Produk");
+        Stage owner = (Stage) tabelProduk.getScene().getWindow();
+        File folder = dc.showDialog(owner);
+        if (folder == null) return;
+
+        // Kumpulkan semua file gambar dalam folder
+        File[] files = folder.listFiles(f -> {
+            String n = f.getName().toLowerCase();
+            return f.isFile() && (n.endsWith(".jpg") || n.endsWith(".jpeg")
+                    || n.endsWith(".png") || n.endsWith(".gif") || n.endsWith(".webp"));
+        });
+
+        if (files == null || files.length == 0) {
+            new Alert(Alert.AlertType.WARNING,
+                    "Tidak ada file gambar (jpg/png/gif/webp) di folder tersebut.",
+                    ButtonType.OK).showAndWait();
+            return;
+        }
+
+        ensureImageDir();
+        List<Produk> semuaProduk = layananData.getAllProduk();
+
+        int cocok = 0, gagal = 0;
+        List<String> logCocok = new ArrayList<>();
+        List<String> logGagal = new ArrayList<>();
+
+        for (File imgFile : files) {
+            String namaFile = stripExtension(imgFile.getName()).toLowerCase()
+                    .replaceAll("[^a-z0-9]", ""); // hanya huruf & angka
+
+            // Cari produk yang namanya paling mirip
+            Produk target = null;
+            int bestScore = -1;
+
+            for (Produk p : semuaProduk) {
+                String namaProduk = p.getNamaProduk().toLowerCase()
+                        .replaceAll("[^a-z0-9]", "");
+                int score = 0;
+                // Nilai: nama file sama persis = 100, file ada di nama produk = 60,
+                //        nama produk ada di file = 40, file mulai sama = 30
+                if (namaProduk.equals(namaFile))          score = 100;
+                else if (namaProduk.contains(namaFile))   score = 60;
+                else if (namaFile.contains(namaProduk))   score = 40;
+                else if (namaProduk.startsWith(namaFile)
+                        || namaFile.startsWith(namaProduk)) score = 30;
+
+                if (score > bestScore) { bestScore = score; target = p; }
+            }
+
+            if (target != null && bestScore >= 30) {
+                try {
+                    String dest = IMAGE_DIR + sanitizeFileName(imgFile.getName());
+                    Files.copy(imgFile.toPath(), Paths.get(dest),
+                            StandardCopyOption.REPLACE_EXISTING);
+                    target.setGambarUrl(dest);
+                    layananData.updateProduk(target);
+                    logCocok.add("✅ " + imgFile.getName() + "  →  " + target.getNamaProduk());
+                    cocok++;
+                } catch (IOException ex) {
+                    logGagal.add("❌ " + imgFile.getName() + " (gagal salin: " + ex.getMessage() + ")");
+                    gagal++;
+                }
+            } else {
+                logGagal.add("⚠️ " + imgFile.getName() + " (tidak cocok dengan produk manapun)");
+                gagal++;
+            }
+        }
+
+        tampilkanPanel();
+
+        // Dialog ringkasan
+        Stage summary = new Stage();
+        summary.initModality(Modality.APPLICATION_MODAL);
+        summary.setTitle("Hasil Import Gambar Massal");
+
+        VBox vbox = new VBox(12);
+        vbox.setPadding(new Insets(20));
+        vbox.setStyle("-fx-background-color:white;");
+
+        Label judul = new Label("Import Gambar Massal Selesai");
+        judul.setStyle("-fx-font-size:15px;-fx-font-weight:bold;-fx-text-fill:#1a1a2e;");
+
+        Label stat = new Label("✅ Berhasil: " + cocok + "   ⚠️ Gagal/Tidak cocok: " + gagal);
+        stat.setStyle("-fx-font-size:13px;-fx-text-fill:#444;");
+
+        TextArea log = new TextArea();
+        log.setEditable(false);
+        log.setPrefHeight(300);
+        log.setStyle("-fx-font-size:12px;-fx-font-family:monospace;");
+        StringBuilder sb = new StringBuilder();
+        for (String s : logCocok) sb.append(s).append("\n");
+        if (!logGagal.isEmpty()) {
+            sb.append("\n--- Tidak Cocok / Gagal ---\n");
+            for (String s : logGagal) sb.append(s).append("\n");
+        }
+        log.setText(sb.toString());
+
+        Label hint = new Label("💡 Tips: Beri nama file gambar sesuai nama produk agar cocok otomatis.\nContoh: \"Somethinc Niacinamide 10% Serum.jpg\"");
+        hint.setStyle("-fx-font-size:11px;-fx-text-fill:#888;-fx-wrap-text:true;");
+        hint.setWrapText(true);
+
+        Button btnOk = new Button("OK");
+        btnOk.setStyle("-fx-background-color:#4B3FC8;-fx-text-fill:white;-fx-padding:7 24;-fx-background-radius:6;-fx-cursor:hand;");
+        btnOk.setOnAction(e -> summary.close());
+
+        vbox.getChildren().addAll(judul, stat, log, hint, btnOk);
+        summary.setScene(new Scene(vbox, 520, 450));
+        summary.showAndWait();
+    }
+
+    private String stripExtension(String filename) {
+        int dot = filename.lastIndexOf('.');
+        return dot >= 0 ? filename.substring(0, dot) : filename;
+    }
 
     @FXML
     public void simpanInfoToko() {

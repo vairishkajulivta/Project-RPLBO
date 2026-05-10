@@ -58,15 +58,39 @@ public class DatabaseService {
                 String[] cols = line.split("\t", -1);
                 switch (section) {
                     case "PRODUK" -> {
-                        // Format kolom: kode|nama|kat|harga|kandungan|aktif|jenisKulit|areaTubuh|gambarUrl
-                        if (cols.length >= 8) {
-                            String areaTubuh = cols.length >= 9 ? cols[7] : "Muka";
-                            String gambarUrl = cols.length >= 9 ? cols[8] : (cols.length == 8 ? cols[7] : "");
+                        // Format 9 kolom: kode|nama|kat|harga|kandungan|aktif|jenisKulit|areaTubuh|gambarUrl
+                        // Format lama 8 kolom: kode|nama|kat|harga|kandungan|aktif|jenisKulit|gambarUrl
+                        if (cols.length >= 6) {
+                            String jenisKulit = cols.length >= 7 ? cols[6] : "Semua Jenis Kulit";
+                            String areaTubuh;
+                            String gambarUrl;
+                            if (cols.length >= 9) {
+                                // Format baru lengkap 9 kolom
+                                areaTubuh = cols[7];
+                                gambarUrl = cols[8];
+                            } else if (cols.length == 8) {
+                                // Format lama 8 kolom — cols[7] adalah gambarUrl, areaTubuh default
+                                // Bedakan: jika cols[7] terlihat seperti URL/path (ada titik atau slash),
+                                // anggap sebagai gambarUrl; jika tidak, anggap areaTubuh
+                                String col7 = cols[7];
+                                boolean likeUrl = col7.contains("/") || col7.contains("\\")
+                                        || col7.contains(".") || col7.startsWith("http");
+                                if (likeUrl || col7.isBlank()) {
+                                    areaTubuh = "Muka";
+                                    gambarUrl = col7;
+                                } else {
+                                    areaTubuh = col7;
+                                    gambarUrl = "";
+                                }
+                            } else {
+                                areaTubuh = "Muka";
+                                gambarUrl = "";
+                            }
                             produkList.add(new Produk(
                                     cols[0], cols[1], cols[2],
                                     parseLong(cols[3]),
                                     cols[4], "1".equals(cols[5]),
-                                    cols[6], areaTubuh, gambarUrl
+                                    jenisKulit, areaTubuh, gambarUrl
                             ));
                         }
                     }
