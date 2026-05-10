@@ -1,57 +1,473 @@
-* {
-    -fx-font-family: "Segoe UI", "Inter", "Arial", sans-serif;
+/* ═══════════════════════════════════════════════════════════════════════════
+   SahabatLaris Chatbot — styles.css
+   JavaFX CSS: semua property pakai prefix -fx-
+   Pseudo selector yang valid di JavaFX: :hover, :focused, :pressed,
+   :disabled, :selected, :nth-child(odd/even) — BUKAN :odd atau :focused tanpa titik dua
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Root / Base ─────────────────────────────────────────────────────────── */
+.root {
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-background-color: #f7f7fb;
 }
 
-.root-login {
+/* ── Navbar ──────────────────────────────────────────────────────────────── */
+.navbar {
+    -fx-background-color: white;
+    -fx-border-color: #e8e8f0;
+    -fx-border-width: 0 0 1 0;
+    -fx-min-height: 64;
+    -fx-pref-height: 64;
+    -fx-padding: 0 16 0 16;
+}
+
+.navbar-btn {
+    -fx-background-color: #f4f3ff;
+    -fx-text-fill: #4B3FC8;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 20;
+    -fx-border-color: #e0defc;
+    -fx-border-width: 1;
+    -fx-border-radius: 20;
+    -fx-padding: 8 16;
+    -fx-cursor: hand;
+}
+
+.navbar-btn:hover {
+    -fx-background-color: #ebe9ff;
+    -fx-border-color: #4B3FC8;
+}
+
+.navbar-btn:pressed {
+    -fx-background-color: #d6d3ff;
+}
+
+/* ── Sidebar ─────────────────────────────────────────────────────────────── */
+.sidebar {
+    -fx-background-color: white;
+    -fx-border-color: #e8e8f0;
+    -fx-border-width: 0 1 0 0;
+    -fx-pref-width: 200;
+    -fx-min-width: 180;
+    -fx-max-width: 220;
+}
+
+.chat-sidebar-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #555;
+    -fx-font-size: 13px;
+    -fx-font-weight: normal;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 10 12;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+}
+
+.chat-sidebar-btn:hover {
+    -fx-background-color: #f4f3ff;
+    -fx-text-fill: #4B3FC8;
+}
+
+.chat-sidebar-btn-active {
+    -fx-background-color: #f0eeff;
+    -fx-text-fill: #4B3FC8;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 10 12;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-border-color: #4B3FC8;
+    -fx-border-width: 0 0 0 3;
+    -fx-border-radius: 0;
+}
+
+/* ── Chat area ───────────────────────────────────────────────────────────── */
+.chat-area {
+    -fx-background-color: #f7f7fb;
+}
+
+/* ── Bubble bot ──────────────────────────────────────────────────────────── */
+.bubble-bot {
+    -fx-background-color: white;
+    -fx-background-radius: 4 16 16 16;
+    -fx-border-color: #e8e8f0;
+    -fx-border-width: 1;
+    -fx-border-radius: 4 16 16 16;
+    -fx-padding: 12 14;
+    -fx-max-width: 420;
+}
+
+.bubble-bot-text {
+    -fx-font-size: 13px;
+    -fx-text-fill: #1a1a2e;
+    -fx-wrap-text: true;
+}
+
+/* ── Bubble user ─────────────────────────────────────────────────────────── */
+.bubble-user {
+    -fx-background-color: #4B3FC8;
+    -fx-background-radius: 16 4 16 16;
+    -fx-padding: 10 14;
+    -fx-max-width: 380;
+}
+
+.bubble-user-text {
+    -fx-font-size: 13px;
+    -fx-text-fill: white;
+    -fx-wrap-text: true;
+}
+
+/* ── Timestamp ───────────────────────────────────────────────────────────── */
+.timestamp {
+    -fx-font-size: 10px;
+    -fx-text-fill: #bbb;
+    -fx-padding: 2 4 0 4;
+}
+
+/* ── Input bar ───────────────────────────────────────────────────────────── */
+.input-bar {
+    -fx-background-color: white;
+    -fx-border-color: #e8e8f0;
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: 12 16;
+    -fx-min-height: 60;
+    -fx-pref-height: 60;
+}
+
+.input-field {
+    -fx-background-color: #f7f7fb;
+    -fx-background-radius: 24;
+    -fx-border-color: #e0e0ef;
+    -fx-border-radius: 24;
+    -fx-border-width: 1;
+    -fx-padding: 10 18;
+    -fx-font-size: 13px;
+    -fx-pref-height: 40;
+    -fx-text-fill: #1a1a2e;
+    -fx-prompt-text-fill: #aaa;
+}
+
+/* PERBAIKAN ERROR: pakai :focused bukan 'focused' */
+.input-field:focused {
+    -fx-border-color: #4B3FC8;
+    -fx-effect: dropshadow(gaussian, rgba(75,63,200,0.15), 6, 0, 0, 0);
+}
+
+.send-button {
+    -fx-background-color: #4B3FC8;
+    -fx-text-fill: white;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 50;
+    -fx-min-width: 40;
+    -fx-min-height: 40;
+    -fx-max-width: 40;
+    -fx-max-height: 40;
+    -fx-cursor: hand;
+    -fx-padding: 0;
+}
+
+.send-button:hover {
+    -fx-background-color: #3d33a0;
+}
+
+.send-button:pressed {
+    -fx-background-color: #302880;
+}
+
+/* ── Produk card ─────────────────────────────────────────────────────────── */
+.product-card {
+    -fx-background-color: white;
+    -fx-border-color: #e8e8f0;
+    -fx-border-width: 1;
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+    -fx-padding: 12;
+}
+
+.product-card:hover {
+    -fx-border-color: #4B3FC8;
+    -fx-background-color: #fdfcff;
+}
+
+.product-name {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1a1a2e;
+}
+
+.product-price {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #4B3FC8;
+}
+
+.product-category {
+    -fx-font-size: 11px;
+    -fx-text-fill: #888;
+}
+
+.product-ingredient {
+    -fx-font-size: 11px;
+    -fx-text-fill: #555;
+}
+
+/* ── Status toko card ────────────────────────────────────────────────────── */
+.status-open {
+    -fx-background-color: #f0fdf4;
+    -fx-border-color: #bbf7d0;
+    -fx-border-width: 1;
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+}
+
+.status-closed {
+    -fx-background-color: #fff5f5;
+    -fx-border-color: #fecaca;
+    -fx-border-width: 1;
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+}
+
+/* ── Typing indicator ────────────────────────────────────────────────────── */
+.typing-dot {
+    -fx-background-color: #4B3FC8;
+    -fx-background-radius: 50;
+    -fx-min-width: 8;
+    -fx-min-height: 8;
+    -fx-max-width: 8;
+    -fx-max-height: 8;
+}
+
+/* ── Admin panel ─────────────────────────────────────────────────────────── */
+.admin-header {
+    -fx-background-color: #4B3FC8;
+    -fx-padding: 0 20;
+    -fx-min-height: 56;
+}
+
+.admin-header-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+}
+
+.admin-sidebar {
+    -fx-background-color: #2d2756;
+    -fx-pref-width: 200;
+    -fx-min-width: 180;
+}
+
+.admin-menu-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: rgba(255,255,255,0.8);
+    -fx-font-size: 13px;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 12 16;
+    -fx-cursor: hand;
+    -fx-background-radius: 0;
+}
+
+.admin-menu-btn:hover {
+    -fx-background-color: rgba(255,255,255,0.1);
+    -fx-text-fill: white;
+}
+
+.admin-menu-btn-active {
+    -fx-background-color: rgba(255,255,255,0.15);
+    -fx-text-fill: white;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 12 16;
+    -fx-cursor: hand;
+    -fx-border-color: white;
+    -fx-border-width: 0 0 0 3;
+    -fx-border-radius: 0;
+    -fx-background-radius: 0;
+}
+
+.admin-content {
+    -fx-background-color: #f7f7fb;
+    -fx-padding: 20;
+}
+
+/* ── TableView ───────────────────────────────────────────────────────────── */
+.table-view {
+    -fx-background-color: white;
+    -fx-border-color: #e8e8f0;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+}
+
+.table-view .column-header {
+    -fx-background-color: #f8f7ff;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #555;
+}
+
+.table-view .table-row-cell {
+    -fx-font-size: 12px;
+    -fx-text-fill: #1a1a2e;
     -fx-background-color: white;
 }
 
-.left-panel {
+/* PERBAIKAN ERROR: pakai :nth-child(odd) bukan :odd */
+.table-view .table-row-cell:nth-child(odd) {
+    -fx-background-color: #fafafa;
+}
+
+.table-view .table-row-cell:selected {
+    -fx-background-color: #f0eeff;
+    -fx-text-fill: #4B3FC8;
+}
+
+.table-view .table-row-cell:hover {
+    -fx-background-color: #f8f7ff;
+}
+
+/* ── Button umum ─────────────────────────────────────────────────────────── */
+.btn-primary {
+    -fx-background-color: #4B3FC8;
+    -fx-text-fill: white;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 8 20;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+    -fx-border-radius: 8;
+}
+
+.btn-primary:hover {
+    -fx-background-color: #3d33a0;
+}
+
+.btn-primary:pressed {
+    -fx-background-color: #302880;
+}
+
+.btn-danger {
+    -fx-background-color: #fee2e2;
+    -fx-text-fill: #c62828;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 7 16;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-border-color: #fecaca;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+}
+
+.btn-danger:hover {
+    -fx-background-color: #fecaca;
+}
+
+.btn-secondary {
+    -fx-background-color: #f4f3ff;
+    -fx-text-fill: #4B3FC8;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 7 16;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-border-color: #e0defc;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+}
+
+.btn-secondary:hover {
+    -fx-background-color: #ebe9ff;
+    -fx-border-color: #4B3FC8;
+}
+
+/* ── TextField & form ────────────────────────────────────────────────────── */
+.text-field, .text-area, .password-field {
+    -fx-background-color: white;
+    -fx-border-color: #e0e0ef;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 8 12;
+    -fx-font-size: 13px;
+    -fx-text-fill: #1a1a2e;
+    -fx-pref-height: 38;
+}
+
+/* PERBAIKAN ERROR: :focused bukan 'focused' */
+.text-field:focused, .text-area:focused, .password-field:focused {
+    -fx-border-color: #4B3FC8;
+    -fx-background-color: white;
+}
+
+.label-form {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #555;
+}
+
+/* ── ComboBox ────────────────────────────────────────────────────────────── */
+.combo-box {
+    -fx-background-color: white;
+    -fx-border-color: #e0e0ef;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-pref-height: 38;
+    -fx-font-size: 13px;
+}
+
+.combo-box:focused {
+    -fx-border-color: #4B3FC8;
+}
+
+/* ── CheckBox ────────────────────────────────────────────────────────────── */
+.check-box .mark {
     -fx-background-color: #4B3FC8;
 }
 
-.logo-circle {
-    -fx-background-color: rgba(255,255,255,0.25);
-    -fx-background-radius: 40;
-    -fx-min-width: 80;
-    -fx-min-height: 80;
-    -fx-max-width: 80;
-    -fx-max-height: 80;
+.check-box:selected .box {
+    -fx-background-color: #4B3FC8;
+    -fx-border-color: #4B3FC8;
 }
 
-.logo-initials {
-    -fx-text-fill: white;
-    -fx-font-size: 26px;
-    -fx-font-weight: bold;
+/* ── ScrollBar ───────────────────────────────────────────────────────────── */
+.scroll-bar {
+    -fx-background-color: transparent;
 }
 
-.brand-name {
-    -fx-text-fill: white;
-    -fx-font-size: 22px;
-    -fx-font-weight: bold;
+.scroll-bar .thumb {
+    -fx-background-color: #d0cef0;
+    -fx-background-radius: 4;
 }
 
-.brand-tagline {
-    -fx-text-fill: rgba(255,255,255,0.8);
-    -fx-font-size: 13px;
-    -fx-text-alignment: center;
+.scroll-bar .thumb:hover {
+    -fx-background-color: #b0acdc;
 }
 
-.right-panel {
+.scroll-bar .track {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button {
+    -fx-background-color: transparent;
+    -fx-padding: 2;
+}
+
+/* ── Login admin ─────────────────────────────────────────────────────────── */
+.login-card {
     -fx-background-color: white;
-}
-
-.avatar-circle {
-    -fx-background-color: #e8e6f5;
-    -fx-background-radius: 35;
-    -fx-min-width: 70;
-    -fx-min-height: 70;
-    -fx-max-width: 70;
-    -fx-max-height: 70;
-}
-
-.avatar-icon {
-    -fx-font-size: 30px;
+    -fx-border-color: #e8e8f0;
+    -fx-border-width: 1;
+    -fx-border-radius: 16;
+    -fx-background-radius: 16;
+    -fx-padding: 36 40;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 16, 0, 0, 4);
 }
 
 .login-title {
@@ -65,542 +481,55 @@
     -fx-text-fill: #888;
 }
 
-.field-label {
-    -fx-font-size: 13px;
-    -fx-font-weight: bold;
-    -fx-text-fill: #444;
-}
-
-.login-field {
-    -fx-background-color: white;
-    -fx-border-color: #d0d0d0;
-    -fx-border-radius: 4;
-    -fx-background-radius: 4;
-    -fx-padding: 8 12;
-    -fx-font-size: 14px;
-    -fx-pref-height: 38px;
-}
-
-.login-field:focused {
-    -fx-border-color: #4B3FC8;
-    -fx-effect: dropshadow(gaussian, rgba(75,63,200,0.15), 4, 0, 0, 0);
-}
-
-.toggle-password {
-    -fx-font-size: 14px;
-    -fx-cursor: hand;
-    -fx-text-fill: #888;
-}
-
 .error-label {
+    -fx-text-fill: #c62828;
+    -fx-font-size: 12px;
+}
+
+/* ── Riwayat sidebar ─────────────────────────────────────────────────────── */
+.riwayat-item {
+    -fx-background-color: transparent;
+    -fx-background-radius: 10;
+    -fx-padding: 8 12;
+    -fx-cursor: hand;
+}
+
+.riwayat-item:hover {
+    -fx-background-color: #f0eeff;
+}
+
+.riwayat-pesan {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1a1a2e;
+}
+
+.riwayat-tag {
+    -fx-background-color: #f0eeff;
+    -fx-text-fill: #4B3FC8;
+    -fx-font-size: 9px;
+    -fx-padding: 2 7;
+    -fx-background-radius: 20;
+}
+
+.riwayat-jam {
+    -fx-font-size: 10px;
+    -fx-text-fill: #bbb;
+}
+
+/* ── Hapus riwayat btn ───────────────────────────────────────────────────── */
+.hapus-riwayat-btn {
+    -fx-background-color: transparent;
     -fx-text-fill: #e53e3e;
     -fx-font-size: 12px;
-}
-
-.login-btn {
-    -fx-background-color: #1a1a2e;
-    -fx-text-fill: white;
-    -fx-font-size: 14px;
-    -fx-font-weight: bold;
-    -fx-padding: 10 0;
-    -fx-background-radius: 5;
-    -fx-cursor: hand;
-}
-
-.login-btn:hover {
-    -fx-background-color: #2d2d5e;
-}
-
-/* ===========================
-   ADMIN PANEL
-   =========================== */
-.admin-root {
-    -fx-background-color: #f5f5f8;
-}
-
-.admin-navbar {
-    -fx-background-color: #4B3FC8;
-    -fx-padding: 10 20;
-}
-
-.navbar-brand {
-    -fx-text-fill: white;
-    -fx-font-size: 16px;
-    -fx-font-weight: bold;
-}
-
-.btn-admin-info {
-    -fx-background-color: rgba(255,255,255,0.2);
-    -fx-text-fill: white;
-    -fx-background-radius: 4;
-    -fx-padding: 5 14;
-    -fx-font-size: 13px;
-    -fx-cursor: hand;
-    -fx-border-color: rgba(255,255,255,0.4);
-    -fx-border-radius: 4;
-}
-
-.btn-keluar {
-    -fx-background-color: rgba(255,255,255,0.15);
-    -fx-text-fill: white;
-    -fx-background-radius: 4;
-    -fx-padding: 5 14;
-    -fx-font-size: 13px;
-    -fx-cursor: hand;
-    -fx-border-color: rgba(255,255,255,0.5);
-    -fx-border-radius: 4;
-}
-
-.btn-keluar:hover {
-    -fx-background-color: rgba(255,255,255,0.3);
-}
-
-.admin-sidebar {
-    -fx-background-color: white;
-    -fx-border-color: transparent #e5e5e5 transparent transparent;
-    -fx-border-width: 0 1 0 0;
-}
-
-.sidebar-btn {
-    -fx-background-color: transparent;
-    -fx-text-fill: #555;
-    -fx-font-size: 13px;
-    -fx-padding: 12 20;
-    -fx-alignment: CENTER_LEFT;
-    -fx-cursor: hand;
-    -fx-border-color: transparent;
-    -fx-background-radius: 0;
-}
-
-.sidebar-btn:hover {
-    -fx-background-color: #f0eeff;
-    -fx-text-fill: #4B3FC8;
-}
-
-.sidebar-btn-active {
-    -fx-background-color: #f0eeff;
-    -fx-text-fill: #4B3FC8;
-    -fx-font-size: 13px;
-    -fx-font-weight: bold;
-    -fx-padding: 12 20;
-    -fx-alignment: CENTER_LEFT;
-    -fx-cursor: hand;
-    -fx-background-radius: 0;
-    -fx-border-color: transparent transparent transparent #4B3FC8;
-    -fx-border-width: 0 0 0 3;
-}
-
-.content-panel {
-    -fx-background-color: #f5f5f8;
-}
-
-.content-title {
-    -fx-font-size: 18px;
-    -fx-font-weight: bold;
-    -fx-text-fill: #1a1a2e;
-}
-
-.badge-count {
-    -fx-background-color: #e8e6f5;
-    -fx-text-fill: #4B3FC8;
-    -fx-font-size: 12px;
-    -fx-padding: 3 10;
-    -fx-background-radius: 12;
-}
-
-.combo-kategori {
-    -fx-background-color: white;
-    -fx-border-color: #d0d0d0;
-    -fx-border-radius: 4;
-    -fx-background-radius: 4;
-    -fx-padding: 2 6;
-    -fx-font-size: 13px;
-}
-
-.btn-tambah {
-    -fx-background-color: #4B3FC8;
-    -fx-text-fill: white;
-    -fx-font-size: 13px;
-    -fx-font-weight: bold;
-    -fx-padding: 7 14;
-    -fx-background-radius: 5;
-    -fx-cursor: hand;
-}
-
-.btn-tambah:hover {
-    -fx-background-color: #3a2fb0;
-}
-
-.produk-table {
-    -fx-background-color: white;
-    -fx-border-color: #e5e5e5;
-    -fx-border-radius: 8;
-    -fx-background-radius: 8;
-}
-
-.produk-table .column-header-background {
-    -fx-background-color: #f8f8fc;
-}
-
-.produk-table .column-header .label {
-    -fx-font-weight: bold;
-    -fx-text-fill: #444;
-    -fx-font-size: 13px;
-}
-
-.produk-table .table-row-cell {
-    -fx-font-size: 13px;
-}
-
-.produk-table .table-row-cell:odd {
-    -fx-background-color: #fafafe;
-}
-
-.produk-table .table-row-cell:hover {
-    -fx-background-color: #f0eeff;
-}
-
-.status-aktif {
-    -fx-background-color: #e8f5e9;
-    -fx-text-fill: #2e7d32;
-    -fx-font-size: 11px;
-    -fx-font-weight: bold;
-    -fx-padding: 3 10;
-    -fx-background-radius: 12;
-}
-
-.btn-ubah {
-    -fx-background-color: #4B3FC8;
-    -fx-text-fill: white;
-    -fx-font-size: 11px;
-    -fx-padding: 4 10;
-    -fx-background-radius: 4;
-    -fx-cursor: hand;
-}
-
-.btn-hapus {
-    -fx-background-color: #e53e3e;
-    -fx-text-fill: white;
-    -fx-font-size: 11px;
-    -fx-padding: 4 10;
-    -fx-background-radius: 4;
-    -fx-cursor: hand;
-}
-
-/* INFO TOKO */
-.btn-simpan {
-    -fx-background-color: #4B3FC8;
-    -fx-text-fill: white;
-    -fx-font-size: 13px;
-    -fx-font-weight: bold;
-    -fx-padding: 7 16;
-    -fx-background-radius: 5;
-    -fx-cursor: hand;
-}
-
-.info-section {
-    -fx-background-color: white;
-    -fx-padding: 16;
-    -fx-background-radius: 8;
-    -fx-border-color: #e5e5e5;
-    -fx-border-radius: 8;
-}
-
-.section-title {
-    -fx-font-size: 14px;
-    -fx-font-weight: bold;
-    -fx-text-fill: #1a1a2e;
-}
-
-.logo-placeholder {
-    -fx-background-color: #e8e6f5;
-    -fx-background-radius: 8;
-    -fx-border-color: #c5c0ee;
-    -fx-border-radius: 8;
-    -fx-border-style: dashed;
-}
-
-.logo-ph-text {
-    -fx-text-fill: #9990dd;
-    -fx-font-size: 12px;
-}
-
-.field-label-sm {
-    -fx-font-size: 12px;
-    -fx-font-weight: bold;
-    -fx-text-fill: #555;
-}
-
-.info-field {
-    -fx-background-color: white;
-    -fx-border-color: #d0d0d0;
-    -fx-border-radius: 4;
-    -fx-background-radius: 4;
-    -fx-padding: 6 10;
-    -fx-font-size: 13px;
-    -fx-pref-height: 34px;
-}
-
-.info-field:focused {
-    -fx-border-color: #4B3FC8;
-}
-
-.info-textarea {
-    -fx-background-color: white;
-    -fx-border-color: #d0d0d0;
-    -fx-border-radius: 4;
-    -fx-background-radius: 4;
-    -fx-padding: 6 10;
-    -fx-font-size: 13px;
-}
-
-.grid-header {
-    -fx-font-weight: bold;
-    -fx-font-size: 12px;
-    -fx-text-fill: #666;
-}
-
-.scroll-info {
-    -fx-background-color: transparent;
-    -fx-border-color: transparent;
-}
-
-.scroll-info .viewport {
-    -fx-background-color: transparent;
-}
-
-/* ===========================
-   CHAT UI
-   =========================== */
-.chat-root {
-    -fx-background-color: #f5f5f8;
-}
-
-.chat-navbar {
-    -fx-background-color: white;
-    -fx-border-color: transparent transparent #e5e5e5 transparent;
-    -fx-border-width: 0 0 1 0;
-    -fx-padding: 10 16;
-}
-
-.chat-logo-circle {
-    -fx-background-color: #4B3FC8;
-    -fx-background-radius: 18;
-    -fx-min-width: 36;
-    -fx-min-height: 36;
-    -fx-max-width: 36;
-    -fx-max-height: 36;
-}
-
-.chat-logo-icon {
-    -fx-font-size: 16px;
-}
-
-.chat-navbar-brand {
-    -fx-font-size: 16px;
-    -fx-font-weight: bold;
-    -fx-text-fill: #1a1a2e;
-}
-
-.btn-riwayat {
-    -fx-background-color: transparent;
-    -fx-text-fill: #555;
-    -fx-border-color: #d0d0d0;
-    -fx-border-radius: 4;
-    -fx-background-radius: 4;
-    -fx-padding: 5 12;
-    -fx-font-size: 13px;
-    -fx-cursor: hand;
-}
-
-.btn-bantuan {
-    -fx-background-color: transparent;
-    -fx-text-fill: #555;
-    -fx-border-color: #d0d0d0;
-    -fx-border-radius: 4;
-    -fx-background-radius: 4;
-    -fx-padding: 5 12;
-    -fx-font-size: 13px;
-    -fx-cursor: hand;
-}
-
-.chat-sidebar {
-    -fx-background-color: white;
-    -fx-border-color: transparent #e5e5e5 transparent transparent;
-    -fx-border-width: 0 1 0 0;
-}
-
-.chat-sidebar-btn {
-    -fx-background-color: transparent;
-    -fx-text-fill: #555;
-    -fx-font-size: 13px;
-    -fx-padding: 12 16;
-    -fx-alignment: CENTER_LEFT;
-    -fx-cursor: hand;
-    -fx-background-radius: 0;
-}
-
-.chat-sidebar-btn:hover {
-    -fx-background-color: #f0eeff;
-    -fx-text-fill: #4B3FC8;
-}
-
-.chat-sidebar-btn-active {
-    -fx-background-color: #f0eeff;
-    -fx-text-fill: #4B3FC8;
-    -fx-font-size: 13px;
     -fx-font-weight: bold;
     -fx-padding: 12 16;
+    -fx-cursor: hand;
     -fx-alignment: CENTER_LEFT;
-    -fx-cursor: hand;
+    -fx-border-color: transparent;
     -fx-background-radius: 0;
-    -fx-border-color: transparent transparent transparent #4B3FC8;
-    -fx-border-width: 0 0 0 3;
 }
 
-.chat-main {
-    -fx-background-color: #f5f5f8;
-}
-
-.chat-scroll {
-    -fx-background-color: transparent;
-    -fx-border-color: transparent;
-}
-
-.chat-scroll .viewport {
-    -fx-background-color: transparent;
-}
-
-.chat-container {
-    -fx-background-color: transparent;
-}
-
-/* User bubble (right) */
-.bubble-user {
-    -fx-background-color: #4B3FC8;
-    -fx-background-radius: 16 16 4 16;
-    -fx-padding: 10 14;
-    -fx-max-width: 360;
-}
-
-.bubble-user-text {
-    -fx-text-fill: white;
-    -fx-font-size: 13px;
-    -fx-wrap-text: true;
-}
-
-/* Bot bubble (left) */
-.bubble-bot {
-    -fx-background-color: white;
-    -fx-background-radius: 16 16 16 4;
-    -fx-border-color: #e5e5e5;
-    -fx-border-radius: 16 16 16 4;
-    -fx-padding: 12 14;
-    -fx-max-width: 380;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 4, 0, 0, 2);
-}
-
-.bubble-bot-text {
-    -fx-text-fill: #1a1a2e;
-    -fx-font-size: 13px;
-    -fx-wrap-text: true;
-}
-
-.bubble-bot-product {
-    -fx-background-color: #f8f7ff;
-    -fx-background-radius: 8;
-    -fx-border-color: #d8d4f5;
-    -fx-border-radius: 8;
-    -fx-padding: 10 12;
-}
-
-.product-name {
-    -fx-font-weight: bold;
-    -fx-text-fill: #1a1a2e;
-    -fx-font-size: 13px;
-}
-
-.product-price {
-    -fx-text-fill: #4B3FC8;
-    -fx-font-size: 13px;
-    -fx-font-weight: bold;
-}
-
-.product-kandungan {
-    -fx-text-fill: #666;
-    -fx-font-size: 12px;
-    -fx-wrap-text: true;
-}
-
-.timestamp {
-    -fx-text-fill: #aaa;
-    -fx-font-size: 10px;
-}
-
-.chat-input-bar {
-    -fx-background-color: white;
-    -fx-border-color: #e5e5e5 transparent transparent transparent;
-    -fx-border-width: 1 0 0 0;
-}
-
-.chat-input {
-    -fx-background-color: #f5f5f8;
-    -fx-border-color: transparent;
-    -fx-background-radius: 20;
-    -fx-padding: 10 16;
-    -fx-font-size: 13px;
-    -fx-pref-height: 40px;
-}
-
-.chat-input:focused {
-    -fx-background-color: white;
-    -fx-border-color: #4B3FC8;
-    -fx-border-radius: 20;
-}
-
-.btn-send {
-    -fx-background-color: #4B3FC8;
-    -fx-text-fill: white;
-    -fx-font-size: 14px;
-    -fx-font-weight: bold;
-    -fx-min-width: 40;
-    -fx-min-height: 40;
-    -fx-max-width: 40;
-    -fx-max-height: 40;
-    -fx-background-radius: 20;
-    -fx-cursor: hand;
-}
-
-.btn-send:hover {
-    -fx-background-color: #3a2fb0;
-}
-
-.typing-indicator {
-    -fx-background-color: white;
-    -fx-background-radius: 16;
-    -fx-border-color: #e5e5e5;
-    -fx-border-radius: 16;
-    -fx-padding: 10 14;
-}
-
-.empty-label {
-    -fx-text-fill: #aaa;
-    -fx-font-size: 13px;
-}
-
-/* Secondary login button (User) */
-.login-btn-secondary {
-    -fx-background-color: white;
-    -fx-text-fill: #4B3FC8;
-    -fx-font-size: 14px;
-    -fx-font-weight: bold;
-    -fx-padding: 10 0;
-    -fx-background-radius: 5;
-    -fx-cursor: hand;
-    -fx-border-color: #4B3FC8;
-    -fx-border-radius: 5;
-    -fx-border-width: 1.5;
-}
-.login-btn-secondary:hover {
-    -fx-background-color: #f0eeff;
+.hapus-riwayat-btn:hover {
+    -fx-background-color: #fff5f5;
 }

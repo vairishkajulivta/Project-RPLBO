@@ -1,9 +1,13 @@
 package org.sahabatlaris.chatbot.service;
 
+import org.sahabatlaris.chatbot.model.HariLibur;
 import org.sahabatlaris.chatbot.model.Produk;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
@@ -19,12 +23,15 @@ public class DatabaseService {
     private String[]           infoToko        = new String[]{"","","","","","",""};
     private final List<String[]> jamOperasional = new ArrayList<>();
     private final List<String[]> intentList     = new ArrayList<>();
+    private final List<HariLibur> hariLiburList = new ArrayList<>();
+    private final List<String[]> riwayatList   = new ArrayList<>(); // pesan|balasan|tag|waktu
 
     private DatabaseService() {
         loadFromFile();
         if (produkList.isEmpty())      initDataDefault();
         if (jamOperasional.isEmpty())  initJamDefault();
         if (intentList.isEmpty())      initIntentDefault();
+        if (hariLiburList.isEmpty())   initHariLiburDefault();
         saveToFile();
     }
 
@@ -72,6 +79,13 @@ public class DatabaseService {
                     case "INTENT" -> {
                         if (cols.length >= 5) intentList.add(cols);
                     }
+                    case "HARI_LIBUR" -> {
+                        if (cols.length >= 4)
+                            hariLiburList.add(new HariLibur(cols[0], cols[1], cols[2], cols[3]));
+                    }
+                    case "RIWAYAT" -> {
+                        if (cols.length >= 4) riwayatList.add(cols);
+                    }
                 }
             }
         } catch (IOException e) { e.printStackTrace(); }
@@ -99,6 +113,13 @@ public class DatabaseService {
             pw.println();
             pw.println("[INTENT]");
             for (String[] it : intentList) pw.println(tab(it));
+            pw.println();
+            pw.println("[HARI_LIBUR]");
+            for (HariLibur hl : hariLiburList)
+                pw.println(tab(hl.getTanggal(), hl.getNama(), hl.getStatus(), hl.getKeterangan()));
+            pw.println();
+            pw.println("[RIWAYAT]");
+            for (String[] r : riwayatList) pw.println(tab(r));
         } catch (IOException e) { e.printStackTrace(); }
     }
 
@@ -280,5 +301,118 @@ public class DatabaseService {
                 saveToFile(); return;
             }
         }
+    }
+
+    // ═══════════════ HARI LIBUR ═══════════════
+
+    private void initHariLiburDefault() {
+        int year = LocalDate.now().getYear();
+        hariLiburList.add(new HariLibur(year + "-01-01", "Tahun Baru Masehi",    "tutup", "Libur Nasional"));
+        hariLiburList.add(new HariLibur(year + "-03-20", "Isra Miraj",           "tutup", "Libur Nasional"));
+        hariLiburList.add(new HariLibur(year + "-03-29", "Wafat Isa Almasih",    "tutup", "Libur Nasional"));
+        hariLiburList.add(new HariLibur(year + "-03-31", "Idul Fitri",           "tutup", "Libur Lebaran"));
+        hariLiburList.add(new HariLibur(year + "-04-01", "Idul Fitri Hari ke-2", "tutup", "Libur Lebaran"));
+        hariLiburList.add(new HariLibur(year + "-05-01", "Hari Buruh",           "buka",  "Tetap buka seperti biasa"));
+        hariLiburList.add(new HariLibur(year + "-05-29", "Kenaikan Isa Almasih", "tutup", "Libur Nasional"));
+        hariLiburList.add(new HariLibur(year + "-06-01", "Hari Lahir Pancasila", "buka",  "Tetap buka seperti biasa"));
+        hariLiburList.add(new HariLibur(year + "-06-06", "Idul Adha",            "tutup", "Libur Nasional"));
+        hariLiburList.add(new HariLibur(year + "-06-27", "Tahun Baru Islam",     "tutup", "Libur Nasional"));
+        hariLiburList.add(new HariLibur(year + "-08-17", "HUT Kemerdekaan RI",   "buka",  "Tetap buka, ada promo spesial!"));
+        hariLiburList.add(new HariLibur(year + "-09-05", "Maulid Nabi Muhammad", "tutup", "Libur Nasional"));
+        hariLiburList.add(new HariLibur(year + "-12-25", "Hari Natal",           "tutup", "Libur Nasional"));
+        hariLiburList.add(new HariLibur(year + "-12-26", "Cuti Bersama Natal",   "tutup", "Cuti Bersama"));
+    }
+
+    public List<HariLibur> getAllHariLibur() {
+        return new ArrayList<>(hariLiburList);
+    }
+
+    public HariLibur getHariLiburUntuk(LocalDate tanggal) {
+        for (HariLibur hl : hariLiburList)
+            if (hl.cocokDengan(tanggal)) return hl;
+        return null;
+    }
+
+    public void tambahHariLibur(HariLibur hl) {
+        hariLiburList.add(hl);
+        saveToFile();
+    }
+
+    public void hapusHariLibur(String tanggal) {
+        hariLiburList.removeIf(hl -> hl.getTanggal().equals(tanggal));
+        saveToFile();
+    }
+
+    /**
+     * Cek status toko hari ini: hari libur + jam operasional.
+     * Return: [statusTeks, keterangan, jamBuka, jamTutup]
+     */
+    public String[] cekStatusTokoHariIni() {
+        LocalDate hari   = LocalDate.now();
+        LocalTime sekarang = LocalTime.now();
+
+        // 1. Cek hari libur
+        HariLibur libur = getHariLiburUntuk(hari);
+        if (libur != null) {
+            String status = libur.isTutup() ? "TUTUP" : "BUKA";
+            return new String[]{status, libur.getNama() + " - " + libur.getKeterangan(), "-", "-"};
+        }
+
+        // 2. Cek jam operasional
+        String namaHari = hari.getDayOfWeek()
+                .getDisplayName(java.time.format.TextStyle.FULL,
+                        new java.util.Locale("id", "ID"));
+        for (String[] j : jamOperasional) {
+            if (j[0].equalsIgnoreCase(namaHari)) {
+                if ("0".equals(j[1])) return new String[]{"TUTUP", "Toko tutup hari ini", j[2], j[3]};
+                // Parse jam
+                try {
+                    LocalTime buka   = LocalTime.parse(j[2].replace(".", ":"),
+                            DateTimeFormatter.ofPattern("HH:mm"));
+                    LocalTime tutup  = LocalTime.parse(j[3].replace(".", ":"),
+                            DateTimeFormatter.ofPattern("HH:mm"));
+                    boolean sedangBuka = !sekarang.isBefore(buka) && sekarang.isBefore(tutup);
+                    String status = sedangBuka ? "BUKA" : "TUTUP";
+                    String ket    = sedangBuka
+                            ? "Toko sedang buka"
+                            : (sekarang.isBefore(buka) ? "Toko belum buka" : "Toko sudah tutup");
+                    return new String[]{status, ket, j[2], j[3]};
+                } catch (Exception e) {
+                    return new String[]{"BUKA", "Jam operasional normal", j[2], j[3]};
+                }
+            }
+        }
+        return new String[]{"BUKA", "Hari operasional normal", "09.00", "21.00"};
+    }
+
+    // ═══════════════ RIWAYAT CHAT ═══════════════
+
+    /**
+     * Tambah riwayat percakapan.
+     * Format simpan: pesan | balasan | tag | waktu
+     */
+    public void tambahRiwayat(String pesan, String balasan, String tag) {
+        String waktu = java.time.LocalDateTime.now()
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+        // Batasi maks 100 riwayat
+        if (riwayatList.size() >= 100) riwayatList.remove(0);
+        riwayatList.add(new String[]{pesan, balasan, tag, waktu});
+        saveToFile();
+    }
+
+    /**
+     * Ambil N riwayat terakhir.
+     * Tiap elemen: [pesan, balasan, tag, waktu]
+     */
+    public List<String[]> getRiwayatTerakhir(int n) {
+        int size  = riwayatList.size();
+        int start = Math.max(0, size - n);
+        return new ArrayList<>(riwayatList.subList(start, size));
+    }
+
+    /** Hapus semua riwayat percakapan. */
+    public void hapusSemuaRiwayat() {
+        riwayatList.clear();
+        saveToFile();
     }
 }
