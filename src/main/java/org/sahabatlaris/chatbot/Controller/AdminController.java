@@ -555,7 +555,8 @@ public class AdminController {
 
             if (existingProduk == null) {
                 Produk p = new Produk(layananData.generateKodeProduk(),
-                        fNama.getText(), fKategori.getValue(), harga, fKandungan.getText(), fAktif.isSelected(),
+                        fNama.getText(), fKategori.getValue(),
+                        harga, fKandungan.getText(), fAktif.isSelected(),
                         jenisKulit, areaTubuh, gambarFinal);
                 layananData.tambahProduk(p);
             } else {

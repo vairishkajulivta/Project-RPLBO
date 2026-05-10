@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
+    <data-source source="LOCAL" name="sahabatlaris@localhost" uuid="95381528-fe7f-4b31-a0cc-1008a475352d">
+      <driver-ref>mysql.8</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>com.mysql.cj.jdbc.Driver</jdbc-driver>
+      <jdbc-url>jdbc:mysql://localhost:3306/sahabatlaris</jdbc-url>
+      <jdbc-additional-properties>
+        <property name="database.introspection.mysql.dbe5060" value="true" />
+      </jdbc-additional-properties>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
     <data-source source="LOCAL" name="sahabatlaris.db" uuid="42bcc4a7-bf0e-415b-a82c-d5b01b0e8883">
       <driver-ref>sqlite.xerial</driver-ref>
       <synchronize>true</synchronize>

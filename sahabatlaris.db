@@ -51,16 +51,16 @@ P049	Inez Coloring Lip Balm	Pelembab	55000	Vitamin E, Shea Butter	1	Semua Jenis 
 P050	Garnier Men Acno Fight Face Wash	Pembersih Muka	32000	Salicylic Acid, Charcoal, Zinc	1	Kulit Berjerawat		Muka
 
 [INFO_TOKO]
-Toko kosmetik Mutiara	Glow up aggak harus mahal	Mutiara Kosmetik adalah salah satu toko ritel produk kecantikan terpopuler dan terlengkap di Yogyakarta.	Jl. Dokter Sutomo No.64 A, Baciro, Kec. Gondokusuman, Kota Yogyakarta	Yogyakarta	55211	https://maps.google.com/?q=Mutiara+Kosmetik+Yogyakarta
+Toko kosmetik Mutiara	Glow up aggak harus mahal	Mutiara Kosmetik adalah salah satu toko ritel produk kecantikan terpopuler dan terlengkap di Yogyakarta.	Jl. Dokter Sutomo No.64 A, Baciro, Kec. Gondokusuman, Kota Yogyakarta	Yogyakarta		https://maps.google.com/?q=Mutiara+Kosmetik+Yogyakarta
 
 [JAM_OPERASIONAL]
 Senin	1	09.00	21.00
 Selasa	1	09.00	21.00
-Rabu	1	09.00	21.00
-Kamis	1	09.00	21.00
-Jumat	1	09.00	21.00
-Sabtu	1	09.00	21.00
-Minggu	1	09.00	21.00
+Rabu	0	09.00	21.00
+Kamis	0	09.00	21.00
+Jumat	0	09.00	21.00
+Sabtu	0	09.00	21.00
+Minggu	0	09.00	21.00
 
 [INTENT]
 Produk	Tampilkan produk skincer untuk <<Kategori>>	<<Kategori>>	Tampilkan produk untuk kulit sensitif	kulit sensitif
@@ -71,3 +71,17 @@ Peta navigasi	Tampilkan link maps untuk lokasi <<info_toko>>	<<info_toko>>	Tampi
 Jam operasional	Tampilkan jam buka dan tutup toko untuk <<info_toko>>	<<info_toko>>	Tampilkan jam buka dan tutup toko untuk Toko Mutiara	Toko Mutiara
 Rekomendasi	Tampilkan semua produk untuk kategori <<kategori>>	<<kategori>>	Tampilkan semua produk untuk kategori Sabun Wajah	Sabun Wajah
 Cek stok	Apakah <<produk>> masih tersedia?	<<produk>>	Apakah Somethinc Calm Down masih tersedia?	Somethinc Calm Down
+
+[HARI_LIBUR]
+01/01	Tahun Baru Masehi	TUTUP	Toko libur menyambut Tahun Baru
+17/08	Hari Kemerdekaan RI	TUTUP	Toko libur memperingati HUT RI
+25/12	Hari Natal	TUTUP	Toko libur Hari Natal
+26/12	Cuti Bersama Natal	TUTUP	Toko libur cuti bersama
+01/05	Hari Buruh Internasional	TUTUP	Toko libur Hari Buruh
+01/06	Hari Pancasila	BUKA	Toko tetap buka, jam normal
+25/03	Hari Raya Nyepi	TUTUP	Toko libur Hari Raya Nyepi
+30/03/2025	Idul Fitri 1446 H (H-1)	TUTUP	Toko libur menyambut Idul Fitri
+31/03/2025	Idul Fitri 1446 H	TUTUP	Toko libur Idul Fitri
+01/04/2025	Idul Fitri 1446 H (H+1)	TUTUP	Toko libur Idul Fitri
+
+[RIWAYAT]

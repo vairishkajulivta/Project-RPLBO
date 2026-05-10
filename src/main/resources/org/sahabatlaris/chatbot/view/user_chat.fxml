@@ -10,32 +10,58 @@
             styleClass="chat-root"
             prefWidth="1100" prefHeight="700">
 
+    <!-- ══════════════════ TOPBAR ══════════════════ -->
     <top>
         <HBox styleClass="chat-navbar" alignment="CENTER_LEFT" spacing="14">
             <StackPane styleClass="chat-logo-circle">
                 <Label styleClass="chat-logo-icon" text="💬"/>
             </StackPane>
-            <Label styleClass="chat-navbar-brand" text="SahabatLarisBot" HBox.hgrow="ALWAYS"/>
+            <VBox spacing="1">
+                <Label styleClass="chat-navbar-brand" text="SahabatLarisBot"/>
+                <Label styleClass="chat-status-label" text="● Online · Siap membantu"/>
+            </VBox>
             <Region HBox.hgrow="ALWAYS"/>
-            <Button styleClass="btn-riwayat" text="Riwayat Chat" onAction="#showRiwayat"/>
-            <Button styleClass="btn-bantuan" text="Bantuan" onAction="#showBantuan"/>
+            <Button styleClass="btn-riwayat" text="🕐  Riwayat Chat" onAction="#showRiwayat"/>
+            <Button styleClass="btn-bantuan" text="📖  Bantuan"      onAction="#showBantuan"/>
         </HBox>
     </top>
 
+    <!-- ══════════════════ BODY ══════════════════ -->
     <center>
         <HBox>
 
-            <VBox styleClass="chat-sidebar" prefWidth="180">
+            <!-- ── SIDEBAR KIRI ── -->
+            <VBox styleClass="chat-sidebar" prefWidth="220" spacing="0">
+
                 <Button fx:id="btnChat"
                         styleClass="chat-sidebar-btn-active"
                         text="💬  Chat"
                         maxWidth="Infinity"
                         onAction="#showChatPanel"/>
+
+                <Separator styleClass="sidebar-sep"/>
+
+                <Label styleClass="sidebar-section-title" text="TERAKHIR DITANYA">
+                    <VBox.margin><Insets top="10" left="16" bottom="6"/></VBox.margin>
+                </Label>
+
+                <VBox fx:id="sidebarRiwayatContainer" spacing="3">
+                    <padding><Insets left="8" right="8"/></padding>
+                </VBox>
+
+                <Region VBox.vgrow="ALWAYS"/>
+
+                <Button styleClass="btn-hapus-riwayat"
+                        text="🗑  Hapus Riwayat"
+                        maxWidth="Infinity"
+                        onAction="#hapusRiwayat">
+                    <VBox.margin><Insets bottom="12" left="8" right="8"/></VBox.margin>
+                </Button>
             </VBox>
 
+            <!-- ── MAIN CHAT ── -->
             <VBox HBox.hgrow="ALWAYS" styleClass="chat-main">
 
-                <!-- SCROLLABLE MESSAGE AREA -->
                 <ScrollPane fx:id="chatScrollPane"
                             styleClass="chat-scroll"
                             fitToWidth="true"
@@ -55,15 +81,15 @@
                     </padding>
                     <TextField fx:id="inputField"
                                styleClass="chat-input"
-                               promptText="Ketik pertanyaan Anda..."
+                               promptText="Ketik nama produk atau pertanyaan..."
                                HBox.hgrow="ALWAYS"
                                onAction="#prosesPesan"/>
                     <Button styleClass="btn-send"
                             text="➤"
                             onAction="#prosesPesan"/>
                 </HBox>
-
             </VBox>
+
         </HBox>
     </center>
 
