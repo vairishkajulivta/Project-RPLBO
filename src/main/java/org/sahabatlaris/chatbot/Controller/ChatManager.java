@@ -33,14 +33,9 @@ public class ChatManager {
         addBotMessage("Halo! Selamat datang di SahabatLaris \uD83D\uDC4B\n"
                 + "Saya bisa membantu Anda mencari informasi produk skincare.\n\n"
                 + "Coba tanyakan:\n"
-                + "\u2022 Tampilkan produk skincare untuk kulit sensitif\n"
-                + "\u2022 Tampilkan deskripsi, kandungan, dan harga untuk Moisturizer\n"
-                + "\u2022 Apakah Wardah Hydra Rose cocok untuk kulit sensitif?\n"
-                + "\u2022 Dimana lokasi toko di daerah Sleman?\n"
-                + "\u2022 Tampilkan link maps untuk lokasi Tugu\n"
-                + "\u2022 Tampilkan jam buka dan tutup toko\n"
-                + "\u2022 Tampilkan semua produk untuk kategori Sabun Wajah\n"
-                + "\u2022 Apakah Somethinc Calm Down masih tersedia?");
+                + "\u2022 Harga moisturizer berapa?\n"
+                + "\u2022 Rekomendasi serum\n"
+                + "\u2022 Produk untuk kulit sensitif");
     }
 
     @FXML
@@ -267,11 +262,9 @@ public class ChatManager {
     @FXML
     public void showBantuan() {
         addBotMessage("Bantuan:\n"
-                + "\u2022 Cek harga produk\n"
-                + "\u2022 Cari produk berdasarkan kategori (moisturizer, toner, serum, dll)\n"
+                + "\u2022 Ketik nama produk untuk info harga\n"
+                + "\u2022 Ketik kategori (moisturizer, toner, serum, dll)\n"
                 + "\u2022 Tanya rekomendasi untuk jenis kulit tertentu\n"
-                + "\u2022 Tanya jam buka toko atau lokasi toko\n\n"
-                + "Contoh: 'harga toner berapa?' atau cukup ketik 'toner'");
-        ;
+                + "\u2022 Tanya jam buka toko atau lokasi toko");
     }
 }

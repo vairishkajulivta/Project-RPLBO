@@ -1,5 +1,6 @@
 package org.sahabatlaris.chatbot.service;
 
+import org.sahabatlaris.chatbot.model.HariLibur;
 import org.sahabatlaris.chatbot.model.Produk;
 import java.util.List;
 
@@ -26,5 +27,20 @@ public class ManagedDataService {
     public void simpanJamOperasional(String hari, int buka, String jamBuka, String jamTutup) {
         db.simpanJamOperasional(hari, buka, jamBuka, jamTutup);
     }
+
+    // Hari Libur
+    public List<HariLibur> getAllHariLibur()          { return db.getAllHariLibur(); }
+    public void tambahHariLibur(HariLibur hl)         { db.tambahHariLibur(hl); }
+    public void hapusHariLibur(String tanggal)        { db.hapusHariLibur(tanggal); }
+
+    // Status Toko
+    public String[] cekStatusTokoHariIni()            { return db.cekStatusTokoHariIni(); }
+
+    // Riwayat Chat
+    public void tambahRiwayat(String pesan, String balasan, String tag) {
+        db.tambahRiwayat(pesan, balasan, tag);
+    }
+    public List<String[]> getRiwayatTerakhir(int n)   { return db.getRiwayatTerakhir(n); }
+    public void hapusSemuaRiwayat()                   { db.hapusSemuaRiwayat(); }
 }
 
