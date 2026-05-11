@@ -29,13 +29,6 @@ public class Produk {
         this.gambarUrl.set("");
     }
 
-    public Produk(String kodeProduk, String namaProduk, String kategori,
-                  long harga, String kandungan, boolean aktif,
-                  String jenisKulit, String gambarUrl) {
-        this(kodeProduk, namaProduk, kategori, harga, kandungan, aktif,
-                jenisKulit, "Muka", gambarUrl);
-    }
-
     // Constructor lengkap 9 field
     public Produk(String kodeProduk, String namaProduk, String kategori,
                   long harga, String kandungan, boolean aktif,

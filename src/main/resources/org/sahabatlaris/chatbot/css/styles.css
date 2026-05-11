@@ -604,3 +604,216 @@
 .login-btn-secondary:hover {
     -fx-background-color: #f0eeff;
 }
+
+/* ===========================
+   TAMBAHAN BARU - WAJIB ADA
+   =========================== */
+
+.chat-status-label {
+    -fx-font-size: 11px;
+    -fx-text-fill: #22c55e;
+}
+
+.sidebar-sep {
+    -fx-background-color: #e5e5e5;
+}
+
+.sidebar-section-title {
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #bbb;
+}
+
+.btn-hapus-riwayat {
+    -fx-background-color: transparent;
+    -fx-text-fill: #e53e3e;
+    -fx-font-size: 12px;
+    -fx-padding: 8 12;
+    -fx-alignment: CENTER_LEFT;
+    -fx-cursor: hand;
+    -fx-background-radius: 8;
+    -fx-border-color: #fecaca;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+}
+
+.btn-hapus-riwayat:hover {
+    -fx-background-color: #fff5f5;
+}
+
+/* Navbar tambahan */
+.chat-navbar {
+    -fx-background-color: white;
+    -fx-border-color: transparent transparent #e5e5e5 transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 10 20;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 4, 0, 0, 2);
+}
+
+.chat-logo-circle {
+    -fx-background-color: linear-gradient(to bottom right, #4B3FC8, #818cf8);
+    -fx-background-radius: 12;
+    -fx-min-width: 38;
+    -fx-min-height: 38;
+    -fx-max-width: 38;
+    -fx-max-height: 38;
+    -fx-effect: dropshadow(gaussian, rgba(79,63,200,0.3), 6, 0, 0, 2);
+}
+
+.chat-navbar-brand {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1a1a2e;
+}
+
+.btn-riwayat {
+    -fx-background-color: transparent;
+    -fx-text-fill: #555;
+    -fx-border-color: #d0d0d0;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 6 14;
+    -fx-font-size: 13px;
+    -fx-cursor: hand;
+}
+
+.btn-riwayat:hover {
+    -fx-border-color: #4B3FC8;
+    -fx-text-fill: #4B3FC8;
+    -fx-background-color: #f0eeff;
+}
+
+.btn-bantuan {
+    -fx-background-color: transparent;
+    -fx-text-fill: #555;
+    -fx-border-color: #d0d0d0;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 6 14;
+    -fx-font-size: 13px;
+    -fx-cursor: hand;
+}
+
+.btn-bantuan:hover {
+    -fx-border-color: #4B3FC8;
+    -fx-text-fill: #4B3FC8;
+    -fx-background-color: #f0eeff;
+}
+
+.btn-send {
+    -fx-background-color: #4B3FC8;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-min-width: 44;
+    -fx-min-height: 44;
+    -fx-max-width: 44;
+    -fx-max-height: 44;
+    -fx-background-radius: 14;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(79,63,200,0.35), 6, 0, 0, 2);
+}
+
+.btn-send:hover {
+    -fx-background-color: #3a2fb0;
+}
+
+.chat-sidebar {
+    -fx-background-color: white;
+    -fx-border-color: transparent #e5e5e5 transparent transparent;
+    -fx-border-width: 0 1 0 0;
+}
+
+.chat-sidebar-btn-active {
+    -fx-background-color: #f0eeff;
+    -fx-text-fill: #4B3FC8;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 12 16;
+    -fx-alignment: CENTER_LEFT;
+    -fx-cursor: hand;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent transparent transparent #4B3FC8;
+    -fx-border-width: 0 0 0 3;
+}
+
+.chat-main {
+    -fx-background-color: #f5f5f8;
+}
+
+.chat-scroll {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.chat-scroll .viewport {
+    -fx-background-color: transparent;
+}
+
+.chat-container {
+    -fx-background-color: transparent;
+}
+
+.bubble-user {
+    -fx-background-color: #4B3FC8;
+    -fx-background-radius: 16 16 4 16;
+    -fx-padding: 10 14;
+    -fx-max-width: 360;
+    -fx-effect: dropshadow(gaussian, rgba(79,63,200,0.2), 4, 0, 0, 2);
+}
+
+.bubble-user-text {
+    -fx-text-fill: white;
+    -fx-font-size: 13px;
+    -fx-wrap-text: true;
+}
+
+.bubble-bot {
+    -fx-background-color: white;
+    -fx-background-radius: 16 16 16 4;
+    -fx-border-color: #e5e5e5;
+    -fx-border-radius: 16 16 16 4;
+    -fx-padding: 12 14;
+    -fx-max-width: 380;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 4, 0, 0, 2);
+}
+
+.bubble-bot-text {
+    -fx-text-fill: #1a1a2e;
+    -fx-font-size: 13px;
+    -fx-wrap-text: true;
+}
+
+.timestamp {
+    -fx-text-fill: #aaa;
+    -fx-font-size: 10px;
+}
+
+.chat-input-bar {
+    -fx-background-color: white;
+    -fx-border-color: #e5e5e5 transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}
+
+.chat-input {
+    -fx-background-color: #f5f5f8;
+    -fx-border-color: transparent;
+    -fx-background-radius: 12;
+    -fx-padding: 10 16;
+    -fx-font-size: 13px;
+    -fx-pref-height: 44px;
+}
+
+.chat-input:focused {
+    -fx-background-color: white;
+    -fx-border-color: #4B3FC8;
+    -fx-border-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(79,63,200,0.15), 4, 0, 0, 0);
+}
+
+.typing-indicator {
+    -fx-background-color: white;
+    -fx-background-radius: 16;
+    -fx-border-color: #e5e5e5;
+    -fx-border-radius: 16;
+    -fx-padding: 10 14;
+}
