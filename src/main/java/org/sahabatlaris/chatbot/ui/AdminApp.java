@@ -1,13 +1,9 @@
 package org.sahabatlaris.chatbot.ui;
 
-import javafx.application.Application;
-import javafx.stage.Stage;
-
-public class AdminApp extends Application {
-
-    @Override
-    public void start(Stage stage) throws Exception {
-        new AppUI().showAdminLogin(stage);
-    }
-
+/**
+ * Kelas pendamping untuk fitur Admin.
+ * Tidak memiliki run – jalankan Main.java untuk membuka aplikasi.
+ */
+public class AdminApp {
+    // Entry point admin ditangani oleh Main.java
 }

@@ -1,7 +1,7 @@
 package org.sahabatlaris.chatbot.Controller;
 
 import org.sahabatlaris.chatbot.model.Produk;
-import org.sahabatlaris.chatbot.ui.AppUI;
+import org.sahabatlaris.chatbot.ui.Main;
 import org.sahabatlaris.chatbot.service.ManagedDataService;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -386,7 +386,7 @@ public class AdminController {
     public void handleLogout() {
         try {
             Stage stage = (Stage) tabelProduk.getScene().getWindow();
-            new AppUI().showAdminLogin(stage);
+            new Main().showAdminLogin(stage);
         } catch (Exception e) { e.printStackTrace(); }
     }
 
@@ -440,6 +440,12 @@ public class AdminController {
         fKandungan.setWrapText(true);
         fKandungan.getStyleClass().add("info-textarea");
 
+        TextArea fDeskripsi = new TextArea();
+        fDeskripsi.setPromptText("Deskripsi produk (opsional)...");
+        fDeskripsi.setPrefRowCount(2);
+        fDeskripsi.setWrapText(true);
+        fDeskripsi.getStyleClass().add("info-textarea");
+
         ComboBox<String> fJenisKulit = new ComboBox<>();
         fJenisKulit.getItems().addAll("Semua Jenis Kulit","Kulit Sensitif",
                 "Kulit Berminyak","Kulit Kering","Kulit Normal",
@@ -466,10 +472,10 @@ public class AdminController {
         previewPane.setMaxSize(110, 110);
         previewPane.setStyle(
                 "-fx-background-color:#f0eeff;" +
-                "-fx-background-radius:10;" +
-                "-fx-border-color:#c5c0ee;" +
-                "-fx-border-radius:10;" +
-                "-fx-border-style:dashed;");
+                        "-fx-background-radius:10;" +
+                        "-fx-border-color:#c5c0ee;" +
+                        "-fx-border-radius:10;" +
+                        "-fx-border-style:dashed;");
 
         Label noImgLbl = new Label("Belum ada\ngambar");
         noImgLbl.setStyle("-fx-text-fill:#9990dd;-fx-font-size:11px;-fx-text-alignment:center;");
@@ -534,14 +540,14 @@ public class AdminController {
         Button btnUpload = new Button("📁  Pilih dari Komputer...");
         btnUpload.setStyle(
                 "-fx-background-color:#4B3FC8;-fx-text-fill:white;" +
-                "-fx-font-size:12px;-fx-padding:7 14;" +
-                "-fx-background-radius:6;-fx-cursor:hand;");
+                        "-fx-font-size:12px;-fx-padding:7 14;" +
+                        "-fx-background-radius:6;-fx-cursor:hand;");
 
         Button btnHapusGambar = new Button("✕ Hapus");
         btnHapusGambar.setStyle(
                 "-fx-background-color:#e53e3e;-fx-text-fill:white;" +
-                "-fx-font-size:11px;-fx-padding:6 10;" +
-                "-fx-background-radius:6;-fx-cursor:hand;");
+                        "-fx-font-size:11px;-fx-padding:6 10;" +
+                        "-fx-background-radius:6;-fx-cursor:hand;");
 
         HBox uploadRow = new HBox(8, btnUpload, btnHapusGambar);
         uploadRow.setAlignment(Pos.CENTER_LEFT);
@@ -581,8 +587,8 @@ public class AdminController {
         Button btnLoadUrl = new Button("🔍 Muat Gambar");
         btnLoadUrl.setStyle(
                 "-fx-background-color:#1D9E75;-fx-text-fill:white;" +
-                "-fx-font-size:12px;-fx-padding:7 14;" +
-                "-fx-background-radius:6;-fx-cursor:hand;");
+                        "-fx-font-size:12px;-fx-padding:7 14;" +
+                        "-fx-background-radius:6;-fx-cursor:hand;");
 
         Label urlInfoLbl = new Label("Masukkan URL gambar dari internet atau path file di komputer.");
         urlInfoLbl.setStyle("-fx-font-size:11px;-fx-text-fill:#888;-fx-wrap-text:true;");
@@ -613,8 +619,8 @@ public class AdminController {
         Label lblUploadHeader = new Label("Upload File");
         lblUploadHeader.setStyle(
                 "-fx-font-size:11px;-fx-font-weight:bold;-fx-text-fill:#4B3FC8;" +
-                "-fx-background-color:#f0eeff;-fx-background-radius:6;" +
-                "-fx-padding:4 10;");
+                        "-fx-background-color:#f0eeff;-fx-background-radius:6;" +
+                        "-fx-padding:4 10;");
 
         Separator sepGambar = new Separator();
         sepGambar.setPadding(new Insets(6, 0, 6, 0));
@@ -622,8 +628,8 @@ public class AdminController {
         Label lblUrlHeader = new Label("Atau Gunakan URL Gambar");
         lblUrlHeader.setStyle(
                 "-fx-font-size:11px;-fx-font-weight:bold;-fx-text-fill:#1D9E75;" +
-                "-fx-background-color:#e8f8f3;-fx-background-radius:6;" +
-                "-fx-padding:4 10;");
+                        "-fx-background-color:#e8f8f3;-fx-background-radius:6;" +
+                        "-fx-padding:4 10;");
 
         metodBox.getChildren().addAll(lblUploadHeader, uploadTab, sepGambar, lblUrlHeader, urlTab);
         metodBox.setPadding(new Insets(0, 0, 0, 14));
@@ -634,9 +640,9 @@ public class AdminController {
         gambarRow.setPadding(new Insets(2, 0, 2, 0));
         gambarRow.setStyle(
                 "-fx-background-color:#fafafa;" +
-                "-fx-border-color:#e8e8f0;-fx-border-width:1;" +
-                "-fx-border-radius:10;-fx-background-radius:10;" +
-                "-fx-padding:12;");
+                        "-fx-border-color:#e8e8f0;-fx-border-width:1;" +
+                        "-fx-border-radius:10;-fx-background-radius:10;" +
+                        "-fx-padding:12;");
 
         // ── Isi form jika mode Edit ──────────────────────────────────────────
         if (existingProduk != null) {
@@ -647,6 +653,7 @@ public class AdminController {
             fJenisKulit.setValue(existingProduk.getJenisKulit());
             fAreaTubuh.setValue(existingProduk.getAreaTubuh() != null ? existingProduk.getAreaTubuh() : "Muka");
             fAktif.setSelected(existingProduk.isAktif());
+            fDeskripsi.setText(existingProduk.getDeskripsi() != null ? existingProduk.getDeskripsi() : "");
             String existingImg = existingProduk.getGambarUrl();
             if (existingImg != null && !existingImg.isBlank()) {
                 imagePath[0] = existingImg;
@@ -710,6 +717,7 @@ public class AdminController {
                 existingProduk.setAreaTubuh(areaTubuh);
                 existingProduk.setGambarUrl(gambarFinal);
                 existingProduk.setAktif(fAktif.isSelected());
+                existingProduk.setDeskripsi(fDeskripsi.getText());
                 layananData.updateProduk(existingProduk);
             }
             filterKategori.getItems().setAll(layananData.getAllKategori());
@@ -725,6 +733,7 @@ public class AdminController {
                 labeledField("Kategori",     fKategori),
                 labeledField("Harga (Rp)",   fHarga),
                 labeledField("Kandungan",    fKandungan),
+                labeledField("Deskripsi",    fDeskripsi),
                 labeledField("Jenis Kulit",  fJenisKulit),
                 labeledField("Area Tubuh",   fAreaTubuh),
                 labeledField("Gambar Produk", gambarRow),

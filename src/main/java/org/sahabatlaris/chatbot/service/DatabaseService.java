@@ -1,442 +1,733 @@
 package org.sahabatlaris.chatbot.service;
 
-import org.sahabatlaris.chatbot.model.HariLibur;
 import org.sahabatlaris.chatbot.model.Produk;
-
-import java.io.*;
-import java.nio.charset.StandardCharsets;
+import java.sql.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
-/**
- * DatabaseService - file-based (tab-separated) storage.
- * Kolom PRODUK: kode|nama|kategori|harga|kandungan|aktif|jenisKulit|areaTubuh|gambarUrl
- */
 public class DatabaseService {
 
     private static DatabaseService instance;
-    private static final String DB_FILE = "sahabatlaris.db";
-
-    private final List<Produk> produkList      = new ArrayList<>();
-    private String[]           infoToko        = new String[]{"","","","","","",""};
-    private final List<String[]> jamOperasional = new ArrayList<>();
-    private final List<String[]> intentList     = new ArrayList<>();
-    private final List<HariLibur> hariLiburList = new ArrayList<>();
-    private final List<String[]> riwayatList   = new ArrayList<>(); // pesan|balasan|tag|waktu
+    private static final String URL = "jdbc:sqlite:D:/SahabatLaris/sahabatlaris.db";
 
     private DatabaseService() {
-        loadFromFile();
-        if (produkList.isEmpty())      initDataDefault();
-        if (jamOperasional.isEmpty())  initJamDefault();
-        if (intentList.isEmpty())      initIntentDefault();
-        if (hariLiburList.isEmpty())   initHariLiburDefault();
-        saveToFile();
+        try {
+            Class.forName("org.sqlite.JDBC");
+            initDatabase();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
-    public static DatabaseService getInstance() {
+    public static synchronized DatabaseService getInstance() {
         if (instance == null) instance = new DatabaseService();
         return instance;
     }
 
-    // ═══════════════ FILE I/O ═══════════════
+    private Connection connect() throws SQLException {
+        return DriverManager.getConnection(URL);
+    }
 
-    private synchronized void loadFromFile() {
-        File f = new File(DB_FILE);
-        if (!f.exists()) return;
-        try (BufferedReader br = new BufferedReader(
-                new InputStreamReader(new FileInputStream(f), StandardCharsets.UTF_8))) {
-            String section = "";
-            String line;
-            while ((line = br.readLine()) != null) {
-                if (line.startsWith("[") && line.endsWith("]")) {
-                    section = line.substring(1, line.length() - 1);
-                    continue;
-                }
-                if (line.trim().isEmpty()) continue;
-                String[] cols = line.split("\t", -1);
-                switch (section) {
-                    case "PRODUK" -> {
-                        // Format 9 kolom: kode|nama|kat|harga|kandungan|aktif|jenisKulit|areaTubuh|gambarUrl
-                        // Format lama 8 kolom: kode|nama|kat|harga|kandungan|aktif|jenisKulit|gambarUrl
-                        if (cols.length >= 6) {
-                            String jenisKulit = cols.length >= 7 ? cols[6] : "Semua Jenis Kulit";
-                            String areaTubuh;
-                            String gambarUrl;
-                            if (cols.length >= 9) {
-                                // Format baru lengkap 9 kolom
-                                areaTubuh = cols[7];
-                                gambarUrl = cols[8];
-                            } else if (cols.length == 8) {
-                                // Format lama 8 kolom — cols[7] adalah gambarUrl, areaTubuh default
-                                // Bedakan: jika cols[7] terlihat seperti URL/path (ada titik atau slash),
-                                // anggap sebagai gambarUrl; jika tidak, anggap areaTubuh
-                                String col7 = cols[7];
-                                boolean likeUrl = col7.contains("/") || col7.contains("\\")
-                                        || col7.contains(".") || col7.startsWith("http");
-                                if (likeUrl || col7.isBlank()) {
-                                    areaTubuh = "Muka";
-                                    gambarUrl = col7;
-                                } else {
-                                    areaTubuh = col7;
-                                    gambarUrl = "";
-                                }
-                            } else {
-                                areaTubuh = "Muka";
-                                gambarUrl = "";
-                            }
-                            produkList.add(new Produk(
-                                    cols[0], cols[1], cols[2],
-                                    parseLong(cols[3]),
-                                    cols[4], "1".equals(cols[5]),
-                                    jenisKulit, areaTubuh, gambarUrl
-                            ));
-                        }
-                    }
-                    case "INFO_TOKO" -> {
-                        if (cols.length >= 7) infoToko = cols;
-                    }
-                    case "JAM_OPERASIONAL" -> {
-                        if (cols.length >= 4) jamOperasional.add(cols);
-                    }
-                    case "INTENT" -> {
-                        if (cols.length >= 5) intentList.add(cols);
-                    }
-                    case "HARI_LIBUR" -> {
-                        if (cols.length >= 4)
-                            hariLiburList.add(new HariLibur(cols[0], cols[1], cols[2], cols[3]));
-                    }
-                    case "RIWAYAT" -> {
-                        if (cols.length >= 4) riwayatList.add(cols);
-                    }
-                }
+
+    private void initDatabase() {
+        String createProduk =
+                "CREATE TABLE IF NOT EXISTS produk (" +
+                        "id              INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                        "kode_produk     TEXT UNIQUE, " +
+                        "nama_produk     TEXT NOT NULL, " +
+                        "kategori        TEXT, " +
+                        "harga           INTEGER, " +
+                        "kandungan       TEXT, " +
+                        "deskripsi       TEXT, " +
+                        "jenis_kulit     TEXT, " +
+                        "area_tubuh      TEXT, " +
+                        "gambar_url      TEXT);";
+
+        String createInfoToko =
+                "CREATE TABLE IF NOT EXISTS info_toko (" +
+                        "id          INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                        "nama        TEXT, " +
+                        "tagline     TEXT, " +
+                        "deskripsi   TEXT, " +
+                        "alamat      TEXT, " +
+                        "kota        TEXT, " +
+                        "kode_pos    TEXT, " +
+                        "link_peta   TEXT);";
+
+        String createJamOperasional =
+                "CREATE TABLE IF NOT EXISTS jam_operasional (" +
+                        "id          INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                        "hari        TEXT UNIQUE, " +
+                        "buka        INTEGER DEFAULT 1, " +
+                        "jam_buka    TEXT, " +
+                        "jam_tutup   TEXT);";
+
+        String createHariLibur =
+                "CREATE TABLE IF NOT EXISTS hari_libur (" +
+                        "id          INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                        "tanggal     TEXT UNIQUE NOT NULL, " +
+                        "nama        TEXT, " +
+                        "status      TEXT, " +
+                        "keterangan  TEXT);";
+
+        String createRiwayat =
+                "CREATE TABLE IF NOT EXISTS riwayat_chat (" +
+                        "id          INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                        "pesan       TEXT, " +
+                        "balasan     TEXT, " +
+                        "tag         TEXT, " +
+                        "waktu       TIMESTAMP DEFAULT CURRENT_TIMESTAMP);";
+
+        try (Connection conn = this.connect(); Statement stmt = conn.createStatement()) {
+            stmt.execute(createProduk);
+            stmt.execute(createInfoToko);
+            stmt.execute(createJamOperasional);
+            stmt.execute(createHariLibur);
+            stmt.execute(createRiwayat);
+
+            if (getAllProduk().isEmpty()) {
+                isiDataAwal();
             }
-        } catch (IOException e) { e.printStackTrace(); }
-    }
-
-    public synchronized void saveToFile() {
-        try (PrintWriter pw = new PrintWriter(new OutputStreamWriter(
-                new FileOutputStream(DB_FILE), StandardCharsets.UTF_8))) {
-            pw.println("[PRODUK]");
-            for (Produk p : produkList) {
-                // 9 kolom: kode|nama|kat|harga|kandungan|aktif|jenisKulit|areaTubuh|gambarUrl
-                pw.println(tab(p.getKodeProduk(), p.getNamaProduk(), p.getKategori(),
-                        String.valueOf(p.getHarga()), p.getKandungan(),
-                        p.isAktif() ? "1" : "0",
-                        p.getJenisKulit(),
-                        p.getAreaTubuh() != null ? p.getAreaTubuh() : "Muka",
-                        p.getGambarUrl()));
-            }
-            pw.println();
-            pw.println("[INFO_TOKO]");
-            pw.println(tab(infoToko));
-            pw.println();
-            pw.println("[JAM_OPERASIONAL]");
-            for (String[] j : jamOperasional) pw.println(tab(j));
-            pw.println();
-            pw.println("[INTENT]");
-            for (String[] it : intentList) pw.println(tab(it));
-            pw.println();
-            pw.println("[HARI_LIBUR]");
-            for (HariLibur hl : hariLiburList)
-                pw.println(tab(hl.getTanggal(), hl.getNama(), hl.getStatus(), hl.getKeterangan()));
-            pw.println();
-            pw.println("[RIWAYAT]");
-            for (String[] r : riwayatList) pw.println(tab(r));
-        } catch (IOException e) { e.printStackTrace(); }
-    }
-
-    private String tab(String... cols) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < cols.length; i++) {
-            if (i > 0) sb.append('\t');
-            sb.append(cols[i] != null ? cols[i].replace("\t", " ").replace("\n", " ") : "");
+            isiJamOperasionalDefault();
+            isiInfoTokoDefault();
+            isiHariLiburDefault();
+            isiContohPertanyaanDefault();
+            // Tambah kolom deskripsi jika belum ada (upgrade database lama)
+            try { stmt.execute("ALTER TABLE produk ADD COLUMN deskripsi TEXT"); }
+            catch (SQLException ignored) {}
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-        return sb.toString();
     }
 
-    private long parseLong(String s) {
-        try { return Long.parseLong(s); } catch (Exception e) { return 0; }
-    }
 
-    // ═══════════════ DEFAULT DATA ═══════════════
 
-    private void initDataDefault() {
-        // kode, nama, kategori, harga, kandungan, aktif(1), jenisKulit, areaTubuh, gambarUrl
-        Object[][] data = {
-                {"P001","Gentle Glow Moisturizer","Pelembab",48000,"Ceramide, Aloe Vera",1,"Kulit Sensitif","Muka",""},
-                {"P002","Soothing Toner","Toner",65000,"Witch Hazel, Green Tea",1,"Kulit Sensitif","Muka",""},
-                {"P003","Barrier Repair Serum","Serum",120000,"Niacinamide, Panthenol",1,"Kulit Sensitif","Muka",""},
-                {"P004","Calming Face Wash","Pembersih Muka",55000,"Centella, Panthenol",1,"Kulit Sensitif","Muka",""},
-                {"P005","Acnaway Mugwort Water","Pelembab",38000,"Mugwort, Centella, Panthenol",1,"Kulit Berjerawat","Muka",""},
-                {"P006","Somethinc Holysnail Gel SPF 50+","Chemical Sunscreen",48000,"UV Filter, Niacinamide, Vitamin E",1,"Semua Jenis Kulit","Muka",""},
-                {"P007","Wardah Hydra Rose Toner","Toner",35000,"Rose Water, Hyaluronic Acid",1,"Kulit Kering","Muka",""},
-                {"P008","Wardah Instaperfect Face Wash","Pembersih Muka",42000,"Vitamin C, Pearl Extract",1,"Semua Jenis Kulit","Muka",""},
-                {"P009","Erha Ultimate Moisturizer","Pelembab",150000,"Ceramide, Glycerin, Shea Butter",1,"Kulit Kering","Muka",""},
-                {"P010","Somethinc Calm Down Toner","Toner",89000,"Centella, Niacinamide, Panthenol",1,"Kulit Sensitif","Muka",""},
-                {"P011","Glad2Glow Centella Gel Moisturizer","Pelembab",79000,"Centella Asiatica, Allantoin, Aloe Vera",1,"Kulit Berjerawat","Muka",""},
-                {"P012","The Ordinary Niacinamide 10%","Serum",145000,"Niacinamide 10%, Zinc 1%",1,"Kulit Berminyak","Muka",""},
-                {"P013","Emina Sun Protection SPF 30","Chemical Sunscreen",38000,"Titanium Dioxide, Aloe Vera",1,"Kulit Sensitif","Muka",""},
-                {"P014","Hanasui Brightening Serum","Serum",55000,"Vitamin C, Niacinamide, Kojic Acid",1,"Semua Jenis Kulit","Muka",""},
-                {"P015","Ms Glow Acne Series Face Wash","Pembersih Muka",65000,"Salicylic Acid, Tea Tree, Zinc",1,"Kulit Berjerawat","Muka",""},
-                {"P016","Skintific Mugwort Pore Toner","Toner",95000,"Mugwort, BHA, Centella",1,"Kulit Berminyak","Muka",""},
-                {"P017","Cetaphil Gentle Skin Cleanser","Pembersih Muka",120000,"Glycerin, Niacinamide",1,"Kulit Sensitif","Muka",""},
-                {"P018","Avoskin Miraculous Retinol Serum","Serum",199000,"Retinol 0.5%, Bakuchiol, Peptide",1,"Kulit Menua","Muka",""},
-                {"P019","Dear Me Beauty Sunscreen SPF50","Chemical Sunscreen",89000,"Zinc Oxide, Hyaluronic Acid, Vitamin E",1,"Kulit Kering","Muka",""},
-                {"P020","Azarine Hydrasoothe Sunscreen SPF45","Chemical Sunscreen",65000,"Centella, Hyaluronic Acid",1,"Semua Jenis Kulit","Muka",""},
-                {"P021","Ertos Acne Spot Gel","Serum",45000,"Salicylic Acid, Tea Tree Oil",1,"Kulit Berjerawat","Muka",""},
-                {"P022","Scarlett Whitening Body Lotion","Pelembab",75000,"Glutathione, Vitamin C, Collagen",1,"Semua Jenis Kulit","Badan",""},
-                {"P023","COSRX AHA/BHA Clarifying Toner","Toner",165000,"AHA, BHA, Apple Water",1,"Kulit Berminyak","Muka",""},
-                {"P024","Innisfree Green Tea Seed Serum","Serum",320000,"Green Tea Extract, Hyaluronic Acid",1,"Kulit Kering","Muka",""},
-                {"P025","Bioderma Sensibio H2O Micellar","Pembersih Muka",185000,"Micellar Water, Cucumber Extract",1,"Kulit Sensitif","Muka",""},
-                {"P026","Pixy UV Whitening Sunscreen SPF33","Chemical Sunscreen",38000,"SPF 33, Vitamin B3",1,"Semua Jenis Kulit","Muka",""},
-                {"P027","Senka Perfect Whip Cleanser","Pembersih Muka",75000,"Hyaluronic Acid, Silk Essence",1,"Kulit Normal","Muka",""},
-                {"P028","SKII Facial Treatment Essence","Toner",1850000,"Pitera (Galactomyces), Niacinamide",1,"Semua Jenis Kulit","Muka",""},
-                {"P029","Ponds Age Miracle Day Cream","Pelembab",125000,"Retinol-C Complex, SPF 18",1,"Kulit Menua","Muka",""},
-                {"P030","Olay Regenerist Micro Serum","Serum",245000,"Amino-Peptide Complex, Niacinamide",1,"Kulit Menua","Muka",""},
-                {"P031","Garnier Sakura White Toner","Toner",55000,"Sakura Extract, Vitamin C",1,"Semua Jenis Kulit","Muka",""},
-                {"P032","LOreal Revitalift Laser Serum","Serum",289000,"Retinol Pure, Hyaluronic Acid",1,"Kulit Menua","Muka",""},
-                {"P033","Neutrogena Ultra Sheer Sunscreen","Chemical Sunscreen",120000,"Helioplex, SPF 50+",1,"Kulit Normal","Muka",""},
-                {"P034","Hada Labo Gokujyun Lotion","Toner",125000,"5 Types Hyaluronic Acid",1,"Kulit Kering","Muka",""},
-                {"P035","Vivo Essence Renewal Cream","Pelembab",95000,"EGF, Collagen, Ceramide",1,"Kulit Menua","Muka",""},
-                {"P036","Lacoco Exfoliating Toner","Toner",85000,"Lemon Extract, AHA 5%",1,"Kulit Berminyak","Muka",""},
-                {"P037","Implora Green Tea Face Wash","Pembersih Muka",25000,"Green Tea Extract, Zinc",1,"Kulit Berminyak","Muka",""},
-                {"P038","Wardah Hydrating Aloe Toner","Toner",42000,"Aloe Vera 95%, Hyaluronic Acid",1,"Kulit Kering","Muka",""},
-                {"P039","Skintific 5X Ceramide Moisturizer","Pelembab",129000,"5 Types Ceramide, Oat Extract",1,"Kulit Sensitif","Muka",""},
-                {"P040","Somethinc Niacinamide 10% Serum","Serum",99000,"Niacinamide 10%, Hyaluronic Acid",1,"Kulit Berminyak","Muka",""},
-                {"P041","Wardah Spotless White Day Cream","Pelembab",55000,"Vitamin C, Niacinamide, SPF 28",1,"Kulit Normal","Muka",""},
-                {"P042","YOU Skin Glow Face Wash","Pembersih Muka",35000,"Vitamin C, Papaya Extract",1,"Semua Jenis Kulit","Muka",""},
-                {"P043","Nivea Luminous 630 Serum","Serum",175000,"Luminous 630, Hyaluronic Acid",1,"Kulit Menua","Muka",""},
-                {"P044","Esqa Aqua Boost Sunscreen SPF50","Chemical Sunscreen",139000,"Hyaluronic Acid, Vitamin E",1,"Kulit Kering","Muka",""},
-                {"P045","Caudalie Vinopure Serum","Serum",450000,"Polyphenols, Salicylic Acid, Niacinamide",1,"Kulit Berminyak","Muka",""},
-                {"P046","Madame Gie Soothing Toner","Toner",29000,"Aloe Vera, Cucumber Extract",1,"Kulit Sensitif","Muka",""},
-                {"P047","Biore UV Aqua Rich Watery Gel","Chemical Sunscreen",115000,"UV Filter, Hyaluronic Acid, SPF 50+",1,"Kulit Normal","Muka",""},
-                {"P048","Elshe Brightening Face Wash","Pembersih Muka",48000,"Glutathione, Vitamin C",1,"Semua Jenis Kulit","Muka",""},
-                {"P049","Inez Coloring Lip Balm","Pelembab",55000,"Vitamin E, Shea Butter",1,"Semua Jenis Kulit","Bibir",""},
-                {"P050","Garnier Men Acno Fight Face Wash","Pembersih Muka",32000,"Salicylic Acid, Charcoal, Zinc",1,"Kulit Berjerawat","Muka",""},
-        };
-        for (Object[] row : data) {
-            produkList.add(new Produk(
-                    (String)row[0], (String)row[1], (String)row[2],
-                    ((Number)row[3]).longValue(),
-                    (String)row[4], ((Number)row[5]).intValue() == 1,
-                    (String)row[6], (String)row[7], (String)row[8]
-            ));
+    public void tambahProduk(Produk p) {
+        String kode = (p.getKodeProduk() == null || p.getKodeProduk().isBlank())
+                ? generateKodeProduk() : p.getKodeProduk();
+
+        String sql = "INSERT INTO produk(kode_produk, nama_produk, kategori, harga, " +
+                "kandungan, deskripsi, jenis_kulit, area_tubuh, gambar_url) VALUES(?,?,?,?,?,?,?,?,?)";
+        try (Connection conn = this.connect(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, kode);
+            pstmt.setString(2, p.getNamaProduk());
+            pstmt.setString(3, p.getKategori());
+            pstmt.setLong(4, p.getHarga());
+            pstmt.setString(5, p.getKandungan());
+            pstmt.setString(6, p.getDeskripsi() != null ? p.getDeskripsi() : "");
+            pstmt.setString(7, p.getJenisKulit());
+            pstmt.setString(8, p.getAreaTubuh());
+            pstmt.setString(9, p.getGambarUrl());
+            pstmt.executeUpdate();
+            System.out.println("Berhasil menambah produk ke database SQLite!");
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-
-        infoToko = new String[]{
-                "Toko kosmetik Mutiara",
-                "Glow up aggak harus mahal",
-                "Mutiara Kosmetik adalah salah satu toko ritel produk kecantikan terpopuler dan terlengkap di Yogyakarta.",
-                "Jl. Dokter Sutomo No.64 A, Baciro, Kec. Gondokusuman, Kota Yogyakarta",
-                "Yogyakarta", "55211",
-                "https://maps.google.com/?q=Mutiara+Kosmetik+Yogyakarta"
-        };
     }
-
-    private void initJamDefault() {
-        String[] hari = {"Senin","Selasa","Rabu","Kamis","Jumat","Sabtu","Minggu"};
-        for (String h : hari) jamOperasional.add(new String[]{h, "1", "09.00", "21.00"});
-    }
-
-    private void initIntentDefault() {
-        intentList.add(new String[]{"Produk","Tampilkan produk skincer untuk <<Kategori>>","<<Kategori>>","Tampilkan produk untuk kulit sensitif","kulit sensitif"});
-        intentList.add(new String[]{"Informasi produk","Tampilkan deskripsi, kandungan, dan harga untuk <<produk>>","<<produk>>","Tampilkan deskripsi kandungan dan harga untuk Moisturizer","Moisturizer"});
-        intentList.add(new String[]{"Kecocokan produk","Apakah <<produk>> cocok untuk kulit sensitif?","<<produk>>","Apakah Wardah Hydra Rose cocok untuk kulit sensitif?","Wardah Hydra Rose"});
-        intentList.add(new String[]{"Lokasi toko","Di mana lokasi toko di daerah <<info_toko>>?","<<info_toko>>","Dimana lokasi toko di daerah Sleman","Sleman"});
-        intentList.add(new String[]{"Peta navigasi","Tampilkan link maps untuk lokasi <<info_toko>>","<<info_toko>>","Tampilkan link maps untuk lokasi Tugu","Tugu"});
-        intentList.add(new String[]{"Jam operasional","Tampilkan jam buka dan tutup toko untuk <<info_toko>>","<<info_toko>>","Tampilkan jam buka dan tutup toko untuk Toko Mutiara","Toko Mutiara"});
-        intentList.add(new String[]{"Rekomendasi","Tampilkan semua produk untuk kategori <<kategori>>","<<kategori>>","Tampilkan semua produk untuk kategori Sabun Wajah","Sabun Wajah"});
-        intentList.add(new String[]{"Cek stok","Apakah <<produk>> masih tersedia?","<<produk>>","Apakah Somethinc Calm Down masih tersedia?","Somethinc Calm Down"});
-    }
-
-    // ═══════════════ PRODUK CRUD ═══════════════
-
-    public List<Produk> getAllProduk()  { return new ArrayList<>(produkList); }
-
-    public List<Produk> getProdukByKategori(String kategori) {
-        if (kategori == null || kategori.equals("Semua Kategori")) return getAllProduk();
-        List<Produk> result = new ArrayList<>();
-        for (Produk p : produkList)
-            if (p.getKategori().equalsIgnoreCase(kategori)) result.add(p);
-        return result;
-    }
-
-    public List<Produk> getProdukByJenisKulit(String jenisKulit) {
-        List<Produk> result = new ArrayList<>();
-        for (Produk p : produkList) {
-            String jk = p.getJenisKulit();
-            if (jk != null && (jk.equalsIgnoreCase(jenisKulit) || jk.equalsIgnoreCase("Semua Jenis Kulit")))
-                result.add(p);
-        }
-        return result;
-    }
-
-    public void tambahProduk(Produk p) { produkList.add(p); saveToFile(); }
 
     public void updateProduk(Produk p) {
-        for (int i = 0; i < produkList.size(); i++) {
-            if (produkList.get(i).getKodeProduk().equals(p.getKodeProduk())) {
-                produkList.set(i, p); saveToFile(); return;
-            }
+        String sql = "UPDATE produk SET nama_produk=?, kategori=?, harga=?, kandungan=?, " +
+                "deskripsi=?, jenis_kulit=?, area_tubuh=?, gambar_url=? WHERE kode_produk=?";
+        try (Connection conn = this.connect(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, p.getNamaProduk());
+            pstmt.setString(2, p.getKategori());
+            pstmt.setLong(3, p.getHarga());
+            pstmt.setString(4, p.getKandungan());
+            pstmt.setString(5, p.getDeskripsi() != null ? p.getDeskripsi() : "");
+            pstmt.setString(6, p.getJenisKulit());
+            pstmt.setString(7, p.getAreaTubuh());
+            pstmt.setString(8, p.getGambarUrl());
+            pstmt.setString(9, p.getKodeProduk());
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
     public void hapusProduk(String kodeProduk) {
-        produkList.removeIf(p -> p.getKodeProduk().equals(kodeProduk));
-        saveToFile();
+        String sql = "DELETE FROM produk WHERE kode_produk = ?";
+        try (Connection conn = this.connect(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, kodeProduk);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public List<Produk> getAllProduk() {
+        List<Produk> list = new ArrayList<>();
+        String sql = "SELECT * FROM produk";
+        try (Connection conn = this.connect(); Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                Produk p = new Produk(
+                        rs.getString("kode_produk"),
+                        rs.getString("nama_produk"),
+                        rs.getString("kategori"),
+                        rs.getLong("harga"),
+                        rs.getString("kandungan"),
+                        true,
+                        rs.getString("jenis_kulit"),
+                        rs.getString("area_tubuh"),
+                        rs.getString("gambar_url")
+                );
+                try { p.setDeskripsi(rs.getString("deskripsi")); } catch (Exception ignored) {}
+                list.add(p);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public List<Produk> getProdukByKategori(String kategori) {
+        List<Produk> list = new ArrayList<>();
+        String sql = "SELECT * FROM produk WHERE kategori = ?";
+        try (Connection conn = this.connect(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, kategori);
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                Produk pp = new Produk(
+                        rs.getString("kode_produk"),
+                        rs.getString("nama_produk"),
+                        rs.getString("kategori"),
+                        rs.getLong("harga"),
+                        rs.getString("kandungan"),
+                        true,
+                        rs.getString("jenis_kulit"),
+                        rs.getString("area_tubuh"),
+                        rs.getString("gambar_url")
+                );
+                try { pp.setDeskripsi(rs.getString("deskripsi")); } catch (Exception ignored) {}
+                list.add(pp);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 
     public List<String> getAllKategori() {
-        List<String> cats = new ArrayList<>();
-        cats.add("Semua Kategori");
-        for (Produk p : produkList)
-            if (!cats.contains(p.getKategori())) cats.add(p.getKategori());
-        return cats;
+        List<String> list = new ArrayList<>();
+        String sql = "SELECT DISTINCT kategori FROM produk ORDER BY kategori";
+        try (Connection conn = this.connect(); Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                String k = rs.getString("kategori");
+                if (k != null && !k.isBlank()) list.add(k);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 
     public String generateKodeProduk() {
-        return "P" + String.format("%03d", produkList.size() + 1);
+        String sql = "SELECT COUNT(*) AS total FROM produk";
+        try (Connection conn = this.connect(); Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) {
+                int total = rs.getInt("total") + 1;
+                return String.format("P%03d", total);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return "P001";
     }
 
-    // ═══════════════ INFO TOKO ═══════════════
 
-    public String[] getInfoToko() { return infoToko.clone(); }
+    public String[] getInfoToko() {
+        String sql = "SELECT * FROM info_toko LIMIT 1";
+        try (Connection conn = this.connect(); Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) {
+                return new String[]{
+                        rs.getString("nama"),
+                        rs.getString("tagline"),
+                        rs.getString("deskripsi"),
+                        rs.getString("alamat"),
+                        rs.getString("kota"),
+                        rs.getString("kode_pos"),
+                        rs.getString("link_peta")
+                };
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return new String[]{"", "", "", "", "", "", ""};
+    }
 
     public void simpanInfoToko(String nama, String tagline, String deskripsi,
                                String alamat, String kota, String kodePos, String linkPeta) {
-        infoToko = new String[]{nama, tagline, deskripsi, alamat, kota, kodePos, linkPeta};
-        saveToFile();
+        try (Connection conn = this.connect()) {
+            int jumlah = 0;
+            try (Statement s = conn.createStatement();
+                 ResultSet rs = s.executeQuery("SELECT COUNT(*) FROM info_toko")) {
+                if (rs.next()) jumlah = rs.getInt(1);
+            }
+            String sql = (jumlah == 0)
+                    ? "INSERT INTO info_toko(nama,tagline,deskripsi,alamat,kota,kode_pos,link_peta) VALUES(?,?,?,?,?,?,?)"
+                    : "UPDATE info_toko SET nama=?,tagline=?,deskripsi=?,alamat=?,kota=?,kode_pos=?,link_peta=? WHERE id=1";
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setString(1, nama);
+                pstmt.setString(2, tagline);
+                pstmt.setString(3, deskripsi);
+                pstmt.setString(4, alamat);
+                pstmt.setString(5, kota);
+                pstmt.setString(6, kodePos);
+                pstmt.setString(7, linkPeta);
+                pstmt.executeUpdate();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
-    // ═══════════════ JAM OPERASIONAL ═══════════════
+
+    private void isiJamOperasionalDefault() {
+        try (Connection conn = this.connect();
+             ResultSet rs = conn.createStatement().executeQuery("SELECT COUNT(*) FROM jam_operasional")) {
+            if (rs.next() && rs.getInt(1) > 0) return;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return;
+        }
+        String[] hariList = {"Senin","Selasa","Rabu","Kamis","Jumat","Sabtu","Minggu"};
+        for (String hari : hariList) {
+            int buka = hari.equals("Minggu") ? 0 : 1;
+            String jamBuka  = hari.equals("Minggu") ? "" : "08:00";
+            String jamTutup = hari.equals("Minggu") ? "" : "21:00";
+            simpanJamOperasional(hari, buka, jamBuka, jamTutup);
+        }
+    }
 
     public List<String[]> getJamOperasional() {
-        List<String[]> copy = new ArrayList<>();
-        for (String[] j : jamOperasional) copy.add(j.clone());
-        return copy;
+        List<String[]> list = new ArrayList<>();
+        String sql = "SELECT hari, buka, jam_buka, jam_tutup FROM jam_operasional";
+        try (Connection conn = this.connect(); Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                list.add(new String[]{
+                        rs.getString("hari"),
+                        String.valueOf(rs.getInt("buka")),
+                        rs.getString("jam_buka"),
+                        rs.getString("jam_tutup")
+                });
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 
     public void simpanJamOperasional(String hari, int buka, String jamBuka, String jamTutup) {
-        for (String[] j : jamOperasional) {
-            if (j[0].equalsIgnoreCase(hari)) {
-                j[1] = String.valueOf(buka); j[2] = jamBuka; j[3] = jamTutup;
-                saveToFile(); return;
-            }
+        String sql = "INSERT INTO jam_operasional(hari,buka,jam_buka,jam_tutup) VALUES(?,?,?,?) " +
+                "ON CONFLICT(hari) DO UPDATE SET buka=excluded.buka," +
+                "jam_buka=excluded.jam_buka,jam_tutup=excluded.jam_tutup";
+        try (Connection conn = this.connect(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, hari);
+            pstmt.setInt(2, buka);
+            pstmt.setString(3, jamBuka);
+            pstmt.setString(4, jamTutup);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
-    // ═══════════════ HARI LIBUR ═══════════════
-
-    private void initHariLiburDefault() {
-        int year = LocalDate.now().getYear();
-        hariLiburList.add(new HariLibur(year + "-01-01", "Tahun Baru Masehi",    "tutup", "Libur Nasional"));
-        hariLiburList.add(new HariLibur(year + "-03-20", "Isra Miraj",           "tutup", "Libur Nasional"));
-        hariLiburList.add(new HariLibur(year + "-03-29", "Wafat Isa Almasih",    "tutup", "Libur Nasional"));
-        hariLiburList.add(new HariLibur(year + "-03-31", "Idul Fitri",           "tutup", "Libur Lebaran"));
-        hariLiburList.add(new HariLibur(year + "-04-01", "Idul Fitri Hari ke-2", "tutup", "Libur Lebaran"));
-        hariLiburList.add(new HariLibur(year + "-05-01", "Hari Buruh",           "buka",  "Tetap buka seperti biasa"));
-        hariLiburList.add(new HariLibur(year + "-05-29", "Kenaikan Isa Almasih", "tutup", "Libur Nasional"));
-        hariLiburList.add(new HariLibur(year + "-06-01", "Hari Lahir Pancasila", "buka",  "Tetap buka seperti biasa"));
-        hariLiburList.add(new HariLibur(year + "-06-06", "Idul Adha",            "tutup", "Libur Nasional"));
-        hariLiburList.add(new HariLibur(year + "-06-27", "Tahun Baru Islam",     "tutup", "Libur Nasional"));
-        hariLiburList.add(new HariLibur(year + "-08-17", "HUT Kemerdekaan RI",   "buka",  "Tetap buka, ada promo spesial!"));
-        hariLiburList.add(new HariLibur(year + "-09-05", "Maulid Nabi Muhammad", "tutup", "Libur Nasional"));
-        hariLiburList.add(new HariLibur(year + "-12-25", "Hari Natal",           "tutup", "Libur Nasional"));
-        hariLiburList.add(new HariLibur(year + "-12-26", "Cuti Bersama Natal",   "tutup", "Cuti Bersama"));
-    }
 
     public List<HariLibur> getAllHariLibur() {
-        return new ArrayList<>(hariLiburList);
-    }
-
-    public HariLibur getHariLiburUntuk(LocalDate tanggal) {
-        for (HariLibur hl : hariLiburList)
-            if (hl.cocokDengan(tanggal)) return hl;
-        return null;
+        List<HariLibur> list = new ArrayList<>();
+        String sql = "SELECT tanggal, nama, status, keterangan FROM hari_libur ORDER BY tanggal";
+        try (Connection conn = this.connect(); Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                list.add(new HariLibur(
+                        rs.getString("tanggal"),
+                        rs.getString("nama"),
+                        rs.getString("status"),
+                        rs.getString("keterangan")
+                ));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 
     public void tambahHariLibur(HariLibur hl) {
-        hariLiburList.add(hl);
-        saveToFile();
+        String sql = "INSERT OR IGNORE INTO hari_libur(tanggal,nama,status,keterangan) VALUES(?,?,?,?)";
+        try (Connection conn = this.connect(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, hl.getTanggal());
+            pstmt.setString(2, hl.getNama());
+            pstmt.setString(3, hl.getStatus());
+            pstmt.setString(4, hl.getKeterangan());
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public void hapusHariLibur(String tanggal) {
-        hariLiburList.removeIf(hl -> hl.getTanggal().equals(tanggal));
-        saveToFile();
+        String sql = "DELETE FROM hari_libur WHERE tanggal = ?";
+        try (Connection conn = this.connect(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, tanggal);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
-    /**
-     * Cek status toko hari ini: hari libur + jam operasional.
-     * Return: [statusTeks, keterangan, jamBuka, jamTutup]
-     */
+
     public String[] cekStatusTokoHariIni() {
-        LocalDate hari   = LocalDate.now();
+        LocalDate hari = LocalDate.now();
         LocalTime sekarang = LocalTime.now();
 
-        // 1. Cek hari libur
-        HariLibur libur = getHariLiburUntuk(hari);
-        if (libur != null) {
-            String status = libur.isTutup() ? "TUTUP" : "BUKA";
-            return new String[]{status, libur.getNama() + " - " + libur.getKeterangan(), "-", "-"};
-        }
-
-        // 2. Cek jam operasional
-        String namaHari = hari.getDayOfWeek()
-                .getDisplayName(java.time.format.TextStyle.FULL,
-                        new java.util.Locale("id", "ID"));
-        for (String[] j : jamOperasional) {
-            if (j[0].equalsIgnoreCase(namaHari)) {
-                if ("0".equals(j[1])) return new String[]{"TUTUP", "Toko tutup hari ini", j[2], j[3]};
-                // Parse jam
-                try {
-                    LocalTime buka   = LocalTime.parse(j[2].replace(".", ":"),
-                            DateTimeFormatter.ofPattern("HH:mm"));
-                    LocalTime tutup  = LocalTime.parse(j[3].replace(".", ":"),
-                            DateTimeFormatter.ofPattern("HH:mm"));
-                    boolean sedangBuka = !sekarang.isBefore(buka) && sekarang.isBefore(tutup);
-                    String status = sedangBuka ? "BUKA" : "TUTUP";
-                    String ket    = sedangBuka
-                            ? "Toko sedang buka"
-                            : (sekarang.isBefore(buka) ? "Toko belum buka" : "Toko sudah tutup");
-                    return new String[]{status, ket, j[2], j[3]};
-                } catch (Exception e) {
-                    return new String[]{"BUKA", "Jam operasional normal", j[2], j[3]};
-                }
+        // Cek hari libur khusus
+        for (HariLibur hl : getAllHariLibur()) {
+            if (hl.cocokDengan(hari)) {
+                return new String[]{"tutup", hl.getNama(), "-", "-"};
             }
         }
-        return new String[]{"BUKA", "Hari operasional normal", "09.00", "21.00"};
+
+        // Nama hari (Bahasa Indonesia)
+        String namaHari;
+        switch (hari.getDayOfWeek()) {
+            case MONDAY:    namaHari = "Senin";   break;
+            case TUESDAY:   namaHari = "Selasa";  break;
+            case WEDNESDAY: namaHari = "Rabu";    break;
+            case THURSDAY:  namaHari = "Kamis";   break;
+            case FRIDAY:    namaHari = "Jumat";   break;
+            case SATURDAY:  namaHari = "Sabtu";   break;
+            default:        namaHari = "Minggu";  break;
+        }
+
+        String sql = "SELECT buka, jam_buka, jam_tutup FROM jam_operasional WHERE hari = ?";
+        try (Connection conn = this.connect(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, namaHari);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                if (rs.getInt("buka") == 0) {
+                    return new String[]{"tutup", namaHari, "-", "-"};
+                }
+                String jamBuka  = rs.getString("jam_buka");
+                String jamTutup = rs.getString("jam_tutup");
+                if (jamBuka != null && !jamBuka.isBlank()) {
+                    LocalTime tBuka  = LocalTime.parse(jamBuka);
+                    LocalTime tTutup = LocalTime.parse(jamTutup != null ? jamTutup : "21:00");
+                    if (sekarang.isBefore(tBuka)) {
+                        return new String[]{"belum_buka", namaHari, jamBuka, jamTutup != null ? jamTutup : "21:00"};
+                    } else if (sekarang.isAfter(tTutup)) {
+                        return new String[]{"sudah_tutup", namaHari, jamBuka, jamTutup != null ? jamTutup : "21:00"};
+                    } else {
+                        return new String[]{"buka", namaHari, jamBuka, jamTutup != null ? jamTutup : "21:00"};
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return new String[]{"buka", namaHari, "08:00", "21:00"};
     }
 
-    // ═══════════════ RIWAYAT CHAT ═══════════════
 
-    /**
-     * Tambah riwayat percakapan.
-     * Format simpan: pesan | balasan | tag | waktu
-     */
     public void tambahRiwayat(String pesan, String balasan, String tag) {
-        String waktu = java.time.LocalDateTime.now()
-                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
-        // Batasi maks 100 riwayat
-        if (riwayatList.size() >= 100) riwayatList.remove(0);
-        riwayatList.add(new String[]{pesan, balasan, tag, waktu});
-        saveToFile();
+        String sql = "INSERT INTO riwayat_chat(pesan,balasan,tag) VALUES(?,?,?)";
+        try (Connection conn = this.connect(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, pesan);
+            pstmt.setString(2, balasan);
+            pstmt.setString(3, tag);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public List<String[]> getRiwayatTerakhir(int n) {
+        List<String[]> list = new ArrayList<>();
+        String sql = "SELECT pesan, balasan, tag, waktu FROM riwayat_chat ORDER BY id DESC LIMIT ?";
+        try (Connection conn = this.connect(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, n);
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                list.add(new String[]{
+                        rs.getString("pesan"),
+                        rs.getString("balasan"),
+                        rs.getString("tag"),
+                        rs.getString("waktu")
+                });
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public void hapusSemuaRiwayat() {
+        String sql = "DELETE FROM riwayat_chat";
+        try (Connection conn = this.connect(); Statement stmt = conn.createStatement()) {
+            stmt.execute(sql);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // =========================================================================
+    // DATA DEFAULT INFO TOKO & HARI LIBUR
+    // =========================================================================
+    private void isiInfoTokoDefault() {
+        try (Connection conn = this.connect();
+             ResultSet rs = conn.createStatement().executeQuery("SELECT COUNT(*) FROM info_toko")) {
+            if (rs.next() && rs.getInt(1) > 0) return;
+        } catch (SQLException e) { return; }
+        simpanInfoToko(
+                "SahabatLaris",
+                "Toko Skincare Terpercaya",
+                "SahabatLaris adalah toko skincare terpercaya yang menyediakan berbagai produk perawatan kulit berkualitas dengan harga terjangkau.",
+                "Jl. Malioboro No. 123",
+                "Yogyakarta",
+                "55271",
+                "https://maps.google.com/?q=SahabatLaris+Yogyakarta"
+        );
+    }
+
+    private void isiHariLiburDefault() {
+        if (!getAllHariLibur().isEmpty()) return;
+        HariLibur[] liburDefault = {
+                new HariLibur("2026-01-01", "Tahun Baru Masehi",             "tutup", "Libur Nasional"),
+                new HariLibur("2026-01-29", "Tahun Baru Imlek",              "tutup", "Libur Nasional"),
+                new HariLibur("2026-03-20", "Isra Miraj",                    "tutup", "Libur Nasional"),
+                new HariLibur("2026-03-31", "Idul Fitri 1447 H",             "tutup", "Libur Lebaran"),
+                new HariLibur("2026-04-01", "Idul Fitri Hari ke-2",          "tutup", "Libur Lebaran"),
+                new HariLibur("2026-04-03", "Cuti Bersama Idul Fitri",       "tutup", "Cuti Bersama"),
+                new HariLibur("2026-05-01", "Hari Buruh Internasional",      "buka",  "Tetap buka normal"),
+                new HariLibur("2026-05-14", "Kenaikan Isa Almasih",          "tutup", "Libur Nasional"),
+                new HariLibur("2026-06-01", "Hari Pancasila",                "buka",  "Tetap buka normal"),
+                new HariLibur("2026-08-17", "HUT Kemerdekaan RI",            "buka",  "Buka dengan promo kemerdekaan"),
+                new HariLibur("2026-12-25", "Hari Natal",                    "tutup", "Libur Nasional"),
+                new HariLibur("2026-12-31", "Malam Tahun Baru",              "buka",  "Buka sampai pukul 22:00")
+        };
+        for (HariLibur hl : liburDefault) tambahHariLibur(hl);
+    }
+
+    // =========================================================================
+    // CONTOH PERTANYAAN
+    // =========================================================================
+    private void isiContohPertanyaanDefault() {
+        try (Connection conn = this.connect();
+             ResultSet rs = conn.createStatement().executeQuery("SELECT COUNT(*) FROM contoh_pertanyaan")) {
+            if (rs.next() && rs.getInt(1) > 0) return;
+        } catch (SQLException e) { return; }
+
+        String[][] pertanyaan = {
+                {"Tampilkan produk skincare untuk kulit sensitif", "Produk"},
+                {"Tampilkan deskripsi, kandungan, jenis kulit, kategori dan area tubuh pada produk Laneige Lip Sleeping Mask", "Produk"},
+                {"Apakah Wardah Hydra Rose cocok untuk kulit sensitif?", "Produk"},
+                {"Dimana lokasi toko?", "Info Toko"},
+                {"Tampilkan link maps lokasi toko?", "Info Toko"},
+                {"Tampilkan jam buka dan tutup toko?", "Info Toko"},
+                {"Tampilkan semua produk untuk kategori face wash", "Produk"},
+                {"Apakah Somethinc Calm Down masih tersedia?", "Produk"},
+                {"Ada tidak rekomendasi Sunscreen yang aman untuk kulit sensitif dan tidak pedih di mata?", "Produk"},
+                {"Tampilkan produk serum yang fokus meredakan kemerahan (anti-redness) untuk kulit sensitif", "Produk"}
+        };
+
+        String sql = "INSERT INTO contoh_pertanyaan(pertanyaan, kategori) VALUES(?,?)";
+        try (Connection conn = this.connect(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            for (String[] p : pertanyaan) {
+                pstmt.setString(1, p[0]);
+                pstmt.setString(2, p[1]);
+                pstmt.executeUpdate();
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+    }
+
+    public List<String[]> getAllContohPertanyaan() {
+        List<String[]> list = new ArrayList<>();
+        String sql = "SELECT pertanyaan, kategori FROM contoh_pertanyaan ORDER BY id";
+        try (Connection conn = this.connect(); Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                list.add(new String[]{rs.getString("pertanyaan"), rs.getString("kategori")});
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+        return list;
+    }
+
+    // =========================================================================
+    // DATA AWAL PRODUK
+    // =========================================================================
+    private void isiDataAwal() {
+        Object[][] data = {
+                {"Glad2Glow Centella Allantoin Soothing", "Pelembab", 45000, "Centella, Allantoin", "Kulit Sensitif", "Muka", "images/produk/Glad2Glow Centella Allantoin Soothing.png"},
+                {"Skintific 5X Ceramide Soothing Toner", "Toner", 115000, "5X Ceramide", "Kulit Kering", "Muka", "images/produk/Skintific 5X Ceramide Soothing Toner.jpg"},
+                {"Labore Sensitive Skin Care Gentlebiome Barrier", "Pelembab", 150000, "Microbiome", "Kulit Sensitif", "Muka", "images/produk/Labore Sensitive Skin Care Gentlebiome Barrier.png"},
+                {"YOU AcnePlus Low pH Calming Cleanser", "Facial Wash", 55000, "Centella, Herbal", "Kulit Berjerawat", "Muka", "images/produk/YOU AcnePlus Low pH Calming Cleanser.png"},
+                {"Acnaway Mugwort Water Gel Moisturizer", "Pelembab", 40000, "Mugwort", "Kulit Berjerawat", "Muka", "images/produk/Acnaway Mugwort Water Gel Moisturizer.jpg"},
+                {"Somethinc Holyshield! UV Watery Sunscreen Gel", "Sunscreen", 48000, "UV Filter", "Semua Jenis Kulit", "Muka", "images/produk/Somethinc Holyshield! UV Watery Sunscreen Gel.png"},
+                {"Wardah Hydra Rose Petal Infused Toner", "Toner", 35000, "Rose Oil", "Kulit Kering", "Muka", "images/produk/Wardah Hydra Rose Petal Infused Toner.jpg"},
+                {"Skintific 5% AHA BHA PHA Exfoliating Toner", "Toner", 110000, "AHA BHA PHA", "Kulit Berminyak", "Muka", "images/produk/Skintific 5% AHA BHA PHA Exfoliating Toner.jpg"},
+                {"Ms Glow Acne Series Facial Wash", "Facial Wash", 60000, "Tea Tree", "Kulit Berjerawat", "Muka", "images/produk/Ms Glow Acne Series Facial Wash.jpg"},
+                {"Hanasui Power Bright Expert Serum", "Serum", 25000, "Niacinamide", "Semua Jenis Kulit", "Muka", "images/produk/Hanasui Power Bright Expert Serum.jpg"},
+                {"Emina Sun Battle SPF 35 PA +++", "Sunscreen", 30000, "Aloe Vera", "Semua Jenis Kulit", "Muka", "images/produk/Emina Sun Battle SPF 35 PA +++.png"},
+                {"The Ordinary Niacinamide 10% + Zinc 1%", "Serum", 100000, "Niacinamide, Zinc", "Kulit Berminyak", "Muka", "images/produk/The Ordinary Niacinamide 10% + Zinc 1%.jpg"},
+                {"Garnier Sakura White Pinkish Radiance Sleeping", "Pelembab", 28000, "Sakura Extract", "Semua Jenis Kulit", "Muka", "images/produk/Garnier Sakura White Pinkish Radiance Sleeping.jpg"},
+                {"Nivea Body Serum Care & Protect", "Body Care", 35000, "Vitamin C, SPF 15", "Semua Jenis Kulit", "Badan", "images/produk/Nivea_Body_Serum.jpg"},
+                {"Vaseline Gluta-Hya Serum Burst", "Body Care", 68000, "Hyaluron, Niacinamide", "Kulit Kering", "Badan", "images/produk/Vaseline_Gluta_Hya.jpg"},
+                {"Grace and Glow Black Opium", "Body Care", 54000, "Niacinamide, Shea Butter", "Semua Jenis Kulit", "Badan", "images/produk/Grace_Glow_Body.jpg"},
+                {"The Caviar Shampoo", "Hair Care", 75000, "Caviar Extract", "Semua Jenis Kulit", "Rambut", "images/produk/Caviar_Shampoo.jpg"},
+                {"Makarizo Advisor Hair Recovery Vitamax", "Hair Care", 25000, "Silk Protein, Vit A,C,E", "Semua Jenis Kulit", "Rambut", "images/produk/Makarizo Advisor Hair Recovery Vitamax.jpg"},
+                {"Somethinc Game Changer Tripeptide Eye Concentrate Gel", "Eye Care", 145000, "Peptide, Caffeine", "Semua Jenis Kulit", "Mata", "images/produk/Somethinc Game Changer Tripeptide Eye Concentrate Gel.jpg"},
+                {"Skintific 360 Crystal Massager Lifting Eye Cream", "Eye Care", 160000, "Retinol, Peptide", "Kulit Menua", "Mata", "images/produk/Skintific 360 Crystal Massager Lifting Eye Cream.jpg"},
+                {"Pure Paw Paw Ointment", "Lip Care", 65000, "Carica Papaya", "Kulit Kering", "Bibir", "images/produk/Pure Paw Paw Ointment.jpg"},
+                {"Laneige Lip Sleeping Mask", "Lip Care", 200000, "Berry Mix Complex", "Kulit Kering", "Bibir", "images/produk/Laneige Lip Sleeping Mask.jpg"},
+                {"The Body Shop Almond Hand & Nail Cream", "Hand Care", 99000, "Almond Oil", "Kulit Kering", "Tangan & Kaki", "images/produk/The Body Shop Almond Hand & Nail Cream.jpg"},
+                {"Bio Oil Skincare Oil", "Body Care", 140000, "PurCellin Oil", "Kulit Sensitif", "Badan", "images/produk/Bio Oil Skincare Oil.jpg"},
+                {"COSRX Acne Pimple Master Patch", "Acne Care", 45000, "Hydrocolloid", "Kulit Berjerawat", "Muka", "images/produk/COSRX Acne Pimple Master Patch .jpg"},
+                {"Hada Labo Gokujyun Ultimate Moisturizing Lotion", "Toner", 48000, "Hyaluronic Acid", "Kulit Kering", "Muka", "images/produk/Hada Labo Gokujyun Ultimate Moisturizing Lotion.jpg"},
+                {"Avoskin Miraculous Retinol Ampoule", "Serum", 249000, "Retinol, Peptide", "Kulit Menua", "Muka", "images/produk/Avoskin Miraculous Retinol Ampoule.jpg"},
+                {"Cetaphil Gentle Skin Cleanser", "Facial Wash", 120000, "Glycerin, Panthenol", "Kulit Sensitif", "Muka", "images/produk/Cetaphil Gentle Skin Cleanser.jpg"},
+                {"The Originote Hyalucera Moisturizer Gel", "Pelembab", 42000, "Hyaluron, Chlorelina", "Kulit Normal", "Muka", "images/produk/The Originote Hyalucera Moisturizer Gel.jpg"},
+                {"Azarine Hydrasoothe Sunscreen Gel SPF45 PA++++", "Sunscreen", 65000, "Aloe Vera, Propolis", "Kulit Berminyak", "Muka", "images/produk/Azarine Hydrasoothe Sunscreen Gel SPF45 PA++++.jpg"}
+        };
+
+        for (Object[] row : data) {
+            tambahProduk(new Produk(
+                    null, (String) row[0], (String) row[1],
+                    ((Number) row[2]).longValue(), (String) row[3],
+                    true, (String) row[4], (String) row[5], (String) row[6]
+            ));
+        }
+    }
+
+
+    // =========================================================================
+    // TEST HARI LIBUR
+    // (logika dari TestHariLibur dipindahkan ke sini agar tidak ada run baru)
+    // =========================================================================
+
+    /**
+     * Menjalankan uji cek status toko berdasarkan daftar hari libur dari database.
+     * Panggil via: DatabaseService.getInstance().testHariLibur()
+     */
+    public void testHariLibur() {
+        System.out.println("========================================");
+        System.out.println("   TEST HARI LIBUR - STATUS TOKO");
+        System.out.println("========================================\n");
+
+        // Ambil dari database; jika kosong pakai data simulasi sementara
+        List<HariLibur> daftarLibur = getAllHariLibur();
+        if (daftarLibur.isEmpty()) {
+            daftarLibur = new ArrayList<>();
+            daftarLibur.add(new HariLibur("2026-01-01", "Tahun Baru Masehi",    "tutup", "Libur Nasional"));
+            daftarLibur.add(new HariLibur("2026-03-20", "Isra Miraj",           "tutup", "Libur Nasional"));
+            daftarLibur.add(new HariLibur("2026-03-31", "Idul Fitri",           "tutup", "Libur Lebaran"));
+            daftarLibur.add(new HariLibur("2026-04-01", "Idul Fitri Hari ke-2", "tutup", "Libur Lebaran"));
+            daftarLibur.add(new HariLibur("2026-05-01", "Hari Buruh",           "buka",  "Tetap buka seperti biasa"));
+            daftarLibur.add(new HariLibur("2026-08-17", "HUT RI",               "buka",  "Tetap buka, ada promo kemerdekaan"));
+            daftarLibur.add(new HariLibur("2026-12-25", "Hari Natal",           "tutup", "Libur Nasional"));
+            System.out.println("[INFO] Tabel hari_libur masih kosong, memakai data simulasi.\n");
+        }
+
+        LocalDate[] tanggalTest = {
+                LocalDate.of(2026, 1,  1),
+                LocalDate.of(2026, 3, 31),
+                LocalDate.of(2026, 5,  1),
+                LocalDate.of(2026, 8, 17),
+                LocalDate.of(2026, 12, 25),
+                LocalDate.of(2026, 6, 15),
+        };
+
+        for (LocalDate tanggal : tanggalTest) {
+            cetakStatusHariLibur(tanggal, daftarLibur);
+        }
+
+        System.out.println("========================================");
+        System.out.println("   CEK HARI INI: " + LocalDate.now());
+        System.out.println("========================================");
+        cetakStatusHariLibur(LocalDate.now(), daftarLibur);
     }
 
     /**
-     * Ambil N riwayat terakhir.
-     * Tiap elemen: [pesan, balasan, tag, waktu]
+     * Mencetak status toko untuk satu tanggal tertentu.
      */
-    public List<String[]> getRiwayatTerakhir(int n) {
-        int size  = riwayatList.size();
-        int start = Math.max(0, size - n);
-        return new ArrayList<>(riwayatList.subList(start, size));
+    private void cetakStatusHariLibur(LocalDate tanggal, List<HariLibur> daftarLibur) {
+        System.out.println("Tanggal : " + tanggal);
+
+        HariLibur hariIni = null;
+        for (HariLibur hl : daftarLibur) {
+            if (hl.cocokDengan(tanggal)) {
+                hariIni = hl;
+                break;
+            }
+        }
+
+        if (hariIni != null) {
+            System.out.println("Hari    : " + hariIni.getNama());
+            System.out.println("Ket     : " + hariIni.getKeterangan());
+            System.out.println("Status  : " + (hariIni.isTutup() ? "\u274C TOKO TUTUP" : "\u2705 TOKO BUKA"));
+        } else {
+            System.out.println("Hari    : Hari biasa (tidak ada di daftar libur)");
+            System.out.println("Status  : \u2705 TOKO BUKA (jam operasional normal)");
+        }
+
+        System.out.println("----------------------------------------\n");
     }
 
-    /** Hapus semua riwayat percakapan. */
-    public void hapusSemuaRiwayat() {
-        riwayatList.clear();
-        saveToFile();
+
+    // =========================================================================
+    // INNER CLASS: HariLibur
+    // (dipindahkan dari model/HariLibur.java - tidak ada file class baru)
+    // =========================================================================
+
+    public static class HariLibur {
+        private String tanggal;
+        private String nama;
+        private String status;
+        private String keterangan;
+
+        public HariLibur() {}
+
+        public HariLibur(String tanggal, String nama, String status, String keterangan) {
+            this.tanggal    = tanggal;
+            this.nama       = nama;
+            this.status     = status;
+            this.keterangan = keterangan;
+        }
+
+        /** Cek apakah hari libur ini cocok dengan tanggal yang diberikan. */
+        public boolean cocokDengan(LocalDate tanggalCek) {
+            try {
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                LocalDate tgl = LocalDate.parse(this.tanggal, formatter);
+                return tgl.equals(tanggalCek);
+            } catch (Exception e) {
+                return false;
+            }
+        }
+
+        /** Cek apakah status hari ini adalah tutup. */
+        public boolean isTutup() {
+            return "tutup".equalsIgnoreCase(this.status);
+        }
+
+        public String getTanggal()              { return tanggal; }
+        public void   setTanggal(String t)      { this.tanggal = t; }
+        public String getNama()                 { return nama; }
+        public void   setNama(String n)         { this.nama = n; }
+        public String getStatus()               { return status; }
+        public void   setStatus(String s)       { this.status = s; }
+        public String getKeterangan()           { return keterangan; }
+        public void   setKeterangan(String k)   { this.keterangan = k; }
+
+        @Override
+        public String toString() {
+            return "HariLibur{tanggal='" + tanggal + "', nama='" + nama +
+                    "', status='" + status + "', keterangan='" + keterangan + "'}";
+        }
     }
 }

@@ -1,6 +1,6 @@
 package org.sahabatlaris.chatbot.service;
 
-import org.sahabatlaris.chatbot.model.HariLibur;
+import org.sahabatlaris.chatbot.service.DatabaseService.HariLibur;
 import org.sahabatlaris.chatbot.model.Produk;
 import java.util.List;
 
@@ -35,6 +35,7 @@ public class ManagedDataService {
 
     // Status Toko
     public String[] cekStatusTokoHariIni()            { return db.cekStatusTokoHariIni(); }
+    public java.util.List<String[]> getAllContohPertanyaan() { return db.getAllContohPertanyaan(); }
 
     // Riwayat Chat
     public void tambahRiwayat(String pesan, String balasan, String tag) {

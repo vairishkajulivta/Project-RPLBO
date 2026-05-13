@@ -1,16 +1,9 @@
 package org.sahabatlaris.chatbot.ui;
 
-import javafx.application.Application;
-import javafx.stage.Stage;
-
-public class UserApp extends Application {
-
-    @Override
-    public void start(Stage stage) throws Exception {
-        new AppUI().showUserChat(stage);
-    }
-
-    public static void main(String[] args) {
-        launch(args);
-    }
+/**
+ * Kelas pendamping untuk fitur User Chat.
+ * Tidak memiliki run – jalankan Main.java untuk membuka aplikasi.
+ */
+public class UserApp {
+    // Entry point user chat ditangani oleh Main.java
 }

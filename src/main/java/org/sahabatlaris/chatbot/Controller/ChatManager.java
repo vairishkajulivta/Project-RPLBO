@@ -1,6 +1,6 @@
 package org.sahabatlaris.chatbot.Controller;
 
-import org.sahabatlaris.chatbot.model.HariLibur;
+import org.sahabatlaris.chatbot.service.DatabaseService.HariLibur;
 import org.sahabatlaris.chatbot.model.Produk;
 import org.sahabatlaris.chatbot.service.ChatbotService;
 import org.sahabatlaris.chatbot.service.ManagedDataService;
@@ -56,12 +56,12 @@ public class ChatManager {
 
         // ── Bubble sapaan ──────────────────────────────────────────────────
         Label msg = new Label(
-            "Halo! Selamat datang di " + namaToko + " \uD83D\uDC4B\n"
-          + "Saya bisa membantu Anda mencari informasi produk skincare.\n\n"
-          + "Coba tanyakan:\n"
-          + "\u2022 Harga moisturizer berapa?\n"
-          + "\u2022 Rekomendasi serum\n"
-          + "\u2022 Produk untuk kulit sensitif");
+                "Halo! Selamat datang di " + namaToko + " \uD83D\uDC4B\n"
+                        + "Saya bisa membantu Anda mencari informasi produk skincare.\n\n"
+                        + "Coba tanyakan:\n"
+                        + "\u2022 Harga moisturizer berapa?\n"
+                        + "\u2022 Rekomendasi serum\n"
+                        + "\u2022 Produk untuk kulit sensitif");
         msg.getStyleClass().add("bubble-bot-text");
         msg.setWrapText(true);
         msg.setMaxWidth(380);
@@ -76,27 +76,27 @@ public class ChatManager {
         chips.setPadding(new Insets(8, 0, 0, 0));
 
         String[][] quickReplies = {
-            {"\uD83C\uDF3F Kulit Sensitif",   "produk untuk kulit sensitif"},
-            {"\uD83D\uDCAB Rekomendasi",       "rekomendasi produk"},
-            {"\uD83D\uDCB0 Cek Harga",         "harga semua produk"},
-            {"\uD83E\uDDF4 Serum",             "serum"},
-            {"\uD83E\uDDF4 Toner",             "toner"},
-            {"\uD83C\uDFEA Status Toko",       "status toko"}
+                {"\uD83C\uDF3F Kulit Sensitif",   "produk untuk kulit sensitif"},
+                {"\uD83D\uDCAB Rekomendasi",       "rekomendasi produk"},
+                {"\uD83D\uDCB0 Cek Harga",         "harga semua produk"},
+                {"\uD83E\uDDF4 Serum",             "serum"},
+                {"\uD83E\uDDF4 Toner",             "toner"},
+                {"\uD83C\uDFEA Status Toko",       "status toko"}
         };
 
         for (String[] qr : quickReplies) {
             Button chip = new Button(qr[0]);
             chip.setStyle(
-                "-fx-background-color: white;" +
-                "-fx-text-fill: #4B3FC8;" +
-                "-fx-font-size: 11px;" +
-                "-fx-font-weight: bold;" +
-                "-fx-background-radius: 20;" +
-                "-fx-border-color: #c5c0f0;" +
-                "-fx-border-width: 1;" +
-                "-fx-border-radius: 20;" +
-                "-fx-padding: 5 12;" +
-                "-fx-cursor: hand;");
+                    "-fx-background-color: white;" +
+                            "-fx-text-fill: #4B3FC8;" +
+                            "-fx-font-size: 11px;" +
+                            "-fx-font-weight: bold;" +
+                            "-fx-background-radius: 20;" +
+                            "-fx-border-color: #c5c0f0;" +
+                            "-fx-border-width: 1;" +
+                            "-fx-border-radius: 20;" +
+                            "-fx-padding: 5 12;" +
+                            "-fx-cursor: hand;");
             String pesanChip = qr[1];
             chip.setOnAction(e -> {
                 if (inputField != null) {
@@ -105,27 +105,27 @@ public class ChatManager {
                 }
             });
             chip.setOnMouseEntered(e -> chip.setStyle(
-                "-fx-background-color: #f0eeff;" +
-                "-fx-text-fill: #4B3FC8;" +
-                "-fx-font-size: 11px;" +
-                "-fx-font-weight: bold;" +
-                "-fx-background-radius: 20;" +
-                "-fx-border-color: #4B3FC8;" +
-                "-fx-border-width: 1.5;" +
-                "-fx-border-radius: 20;" +
-                "-fx-padding: 5 12;" +
-                "-fx-cursor: hand;"));
+                    "-fx-background-color: #f0eeff;" +
+                            "-fx-text-fill: #4B3FC8;" +
+                            "-fx-font-size: 11px;" +
+                            "-fx-font-weight: bold;" +
+                            "-fx-background-radius: 20;" +
+                            "-fx-border-color: #4B3FC8;" +
+                            "-fx-border-width: 1.5;" +
+                            "-fx-border-radius: 20;" +
+                            "-fx-padding: 5 12;" +
+                            "-fx-cursor: hand;"));
             chip.setOnMouseExited(e -> chip.setStyle(
-                "-fx-background-color: white;" +
-                "-fx-text-fill: #4B3FC8;" +
-                "-fx-font-size: 11px;" +
-                "-fx-font-weight: bold;" +
-                "-fx-background-radius: 20;" +
-                "-fx-border-color: #c5c0f0;" +
-                "-fx-border-width: 1;" +
-                "-fx-border-radius: 20;" +
-                "-fx-padding: 5 12;" +
-                "-fx-cursor: hand;"));
+                    "-fx-background-color: white;" +
+                            "-fx-text-fill: #4B3FC8;" +
+                            "-fx-font-size: 11px;" +
+                            "-fx-font-weight: bold;" +
+                            "-fx-background-radius: 20;" +
+                            "-fx-border-color: #c5c0f0;" +
+                            "-fx-border-width: 1;" +
+                            "-fx-border-radius: 20;" +
+                            "-fx-padding: 5 12;" +
+                            "-fx-cursor: hand;"));
             chips.getChildren().add(chip);
         }
 
@@ -133,10 +133,10 @@ public class ChatManager {
         fullBubble.getStyleClass().add("bubble-bot");
         fullBubble.setMaxWidth(420);
         fullBubble.setStyle(
-            "-fx-background-color: white;" +
-            "-fx-border-color: #e8e8f0; -fx-border-width: 1;" +
-            "-fx-border-radius: 4 16 16 16; -fx-background-radius: 4 16 16 16;" +
-            "-fx-padding: 14 16;");
+                "-fx-background-color: white;" +
+                        "-fx-border-color: #e8e8f0; -fx-border-width: 1;" +
+                        "-fx-border-radius: 4 16 16 16; -fx-background-radius: 4 16 16 16;" +
+                        "-fx-padding: 14 16;");
         fullBubble.getChildren().addAll(msg, chips);
 
         Label time = new Label(LocalTime.now().format(TIME_FMT));
@@ -194,15 +194,15 @@ public class ChatManager {
 
     /** Satu baris kartu hari libur */
     private HBox buildHariLiburRow(LocalDate tgl, HariLibur hl,
-                                    DateTimeFormatter fmt) {
+                                   DateTimeFormatter fmt) {
         boolean tutup = hl.isTutup();
 
         HBox row = new HBox(10);
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(8, 10, 8, 10));
         row.setStyle(tutup
-            ? "-fx-background-color: #fff5f5; -fx-background-radius: 10; -fx-border-color: #fecaca; -fx-border-width: 1; -fx-border-radius: 10;"
-            : "-fx-background-color: #f0fdf4; -fx-background-radius: 10; -fx-border-color: #bbf7d0; -fx-border-width: 1; -fx-border-radius: 10;");
+                ? "-fx-background-color: #fff5f5; -fx-background-radius: 10; -fx-border-color: #fecaca; -fx-border-width: 1; -fx-border-radius: 10;"
+                : "-fx-background-color: #f0fdf4; -fx-background-radius: 10; -fx-border-color: #bbf7d0; -fx-border-width: 1; -fx-border-radius: 10;");
 
         // Ikon status
         Label ikonLbl = new Label(tutup ? "❌" : "✅");
@@ -224,8 +224,8 @@ public class ChatManager {
         // Badge kanan
         Label badgeLbl = new Label(tutup ? "Tutup" : "Buka");
         badgeLbl.setStyle(tutup
-            ? "-fx-background-color: #fee2e2; -fx-text-fill: #991b1b; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 3 8; -fx-background-radius: 20;"
-            : "-fx-background-color: #dcfce7; -fx-text-fill: #166534; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 3 8; -fx-background-radius: 20;");
+                ? "-fx-background-color: #fee2e2; -fx-text-fill: #991b1b; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 3 8; -fx-background-radius: 20;"
+                : "-fx-background-color: #dcfce7; -fx-text-fill: #166534; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 3 8; -fx-background-radius: 20;");
 
         row.getChildren().addAll(ikonLbl, infoBox, badgeLbl);
         return row;
@@ -266,8 +266,8 @@ public class ChatManager {
             if (!produkDisebut.isEmpty()) {
                 addBotProductCards(produkDisebut);
                 String ringkasan = produkDisebut.size() + " produk ditampilkan: " +
-                    produkDisebut.get(0).getNamaProduk() +
-                    (produkDisebut.size() > 1 ? ", dll." : ".");
+                        produkDisebut.get(0).getNamaProduk() +
+                        (produkDisebut.size() > 1 ? ", dll." : ".");
                 dataService.tambahRiwayat(pesan, ringkasan, "Produk");
                 muatSidebarRiwayat();
             } else {
@@ -280,13 +280,13 @@ public class ChatManager {
                     addBotProductCards(produkResult);
                     String ringkasan = header + " (" + produkResult.size() + " produk)";
                     dataService.tambahRiwayat(pesan, ringkasan, "Produk");
-                muatSidebarRiwayat();
+                    muatSidebarRiwayat();
                 } else {
                     addBotMessage(jawaban);
                     // Tentukan tag berdasarkan konten jawaban
                     String tag = tentukanTag(pesan);
                     dataService.tambahRiwayat(pesan, jawaban, tag);
-                muatSidebarRiwayat();
+                    muatSidebarRiwayat();
                 }
             }
         });
@@ -298,28 +298,28 @@ public class ChatManager {
         String[] info   = dataService.getInfoToko();
         String namaToko = info.length > 0 && !info[0].isBlank() ? info[0] : "SahabatLaris";
         String[] status = dataService.cekStatusTokoHariIni();
-        boolean buka    = "BUKA".equals(status[0]);
+        boolean buka    = "buka".equalsIgnoreCase(status[0]);
 
         String hariIniStr = LocalDate.now().getDayOfWeek()
-            .getDisplayName(java.time.format.TextStyle.FULL, new java.util.Locale("id","ID"));
+                .getDisplayName(java.time.format.TextStyle.FULL, new java.util.Locale("id","ID"));
         String tglStr = LocalDate.now().format(
-            java.time.format.DateTimeFormatter.ofPattern("d MMMM yyyy", new java.util.Locale("id","ID")));
+                java.time.format.DateTimeFormatter.ofPattern("d MMMM yyyy", new java.util.Locale("id","ID")));
 
         // ── Card utama ────────────────────────────────────────────────────────
         VBox card = new VBox(0);
         card.setMaxWidth(430);
         card.setStyle(
-            "-fx-background-color: white;" +
-            "-fx-border-color: #e8e8f0; -fx-border-width: 1;" +
-            "-fx-border-radius: 18; -fx-background-radius: 18;" +
-            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.09), 12, 0, 0, 3);");
+                "-fx-background-color: white;" +
+                        "-fx-border-color: #e8e8f0; -fx-border-width: 1;" +
+                        "-fx-border-radius: 18; -fx-background-radius: 18;" +
+                        "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.09), 12, 0, 0, 3);");
 
         // ── Header: status BUKA / TUTUP ───────────────────────────────────────
         VBox header = new VBox(6);
         header.setPadding(new Insets(16, 18, 14, 18));
         header.setStyle(buka
-            ? "-fx-background-color: #f0fdf4; -fx-background-radius: 18 18 0 0;"
-            : "-fx-background-color: #fff5f5; -fx-background-radius: 18 18 0 0;");
+                ? "-fx-background-color: #f0fdf4; -fx-background-radius: 18 18 0 0;"
+                : "-fx-background-color: #fff5f5; -fx-background-radius: 18 18 0 0;");
 
         HBox topRow = new HBox(10);
         topRow.setAlignment(Pos.CENTER_LEFT);
@@ -329,17 +329,17 @@ public class ChatManager {
         ikonCircle.setMinSize(40, 40);
         ikonCircle.setMaxSize(40, 40);
         ikonCircle.setStyle(buka
-            ? "-fx-background-color: #dcfce7; -fx-background-radius: 20;"
-            : "-fx-background-color: #fee2e2; -fx-background-radius: 20;");
+                ? "-fx-background-color: #dcfce7; -fx-background-radius: 20;"
+                : "-fx-background-color: #fee2e2; -fx-background-radius: 20;");
         Label ikonLbl = new Label(buka ? "✓" : "✕");
         ikonLbl.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: " +
-            (buka ? "#16a34a;" : "#dc2626;"));
+                (buka ? "#16a34a;" : "#dc2626;"));
         ikonCircle.getChildren().add(ikonLbl);
 
         VBox statusInfo = new VBox(3);
         Label statusLbl = new Label("Toko " + (buka ? "BUKA" : "TUTUP") + " Sekarang");
         statusLbl.setStyle("-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: " +
-            (buka ? "#15803d;" : "#dc2626;"));
+                (buka ? "#15803d;" : "#dc2626;"));
         Label subLbl = new Label(status[1]);
         subLbl.setStyle("-fx-font-size: 11px; -fx-text-fill: #999;");
         statusInfo.getChildren().addAll(statusLbl, subLbl);
@@ -348,10 +348,10 @@ public class ChatManager {
         // Badge tanggal hari ini
         Label tglBadge = new Label(hariIniStr + ", " + tglStr);
         tglBadge.setStyle(
-            "-fx-background-color: " + (buka ? "#dcfce7" : "#fee2e2") + ";" +
-            "-fx-text-fill: " + (buka ? "#15803d" : "#dc2626") + ";" +
-            "-fx-font-size: 10px; -fx-font-weight: bold;" +
-            "-fx-padding: 3 9; -fx-background-radius: 20;");
+                "-fx-background-color: " + (buka ? "#dcfce7" : "#fee2e2") + ";" +
+                        "-fx-text-fill: " + (buka ? "#15803d" : "#dc2626") + ";" +
+                        "-fx-font-size: 10px; -fx-font-weight: bold;" +
+                        "-fx-padding: 3 9; -fx-background-radius: 20;");
 
         topRow.getChildren().addAll(ikonCircle, statusInfo, tglBadge);
         header.getChildren().add(topRow);
@@ -401,37 +401,37 @@ public class ChatManager {
             jamRow.setPadding(new Insets(7, 10, 7, 10));
             if (isToday) {
                 jamRow.setStyle(
-                    "-fx-background-color: " + (buka ? "#f0fdf4" : "#fff5f5") + ";" +
-                    "-fx-background-radius: 10;" +
-                    "-fx-border-color: " + (buka ? "#bbf7d0" : "#fecaca") + ";" +
-                    "-fx-border-width: 1; -fx-border-radius: 10;");
+                        "-fx-background-color: " + (buka ? "#f0fdf4" : "#fff5f5") + ";" +
+                                "-fx-background-radius: 10;" +
+                                "-fx-border-color: " + (buka ? "#bbf7d0" : "#fecaca") + ";" +
+                                "-fx-border-width: 1; -fx-border-radius: 10;");
             }
 
             Label hariLbl = new Label(namaHari);
             hariLbl.setMinWidth(80);
             hariLbl.setStyle(isToday
-                ? "-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: " + (buka ? "#15803d;" : "#dc2626;")
-                : "-fx-font-size: 12px; -fx-text-fill: #555;");
+                    ? "-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: " + (buka ? "#15803d;" : "#dc2626;")
+                    : "-fx-font-size: 12px; -fx-text-fill: #555;");
 
             Region sp = new Region();
             HBox.setHgrow(sp, Priority.ALWAYS);
 
             Label jamTxt = new Label(bukaHari ? jam[2] + " – " + jam[3] : "Libur");
             jamTxt.setStyle(bukaHari
-                ? (isToday
-                    ? "-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: " + (buka ? "#15803d;" : "#dc2626;")
-                    : "-fx-font-size: 12px; -fx-text-fill: #333;")
-                : "-fx-font-size: 12px; -fx-text-fill: #e53e3e;");
+                    ? (isToday
+                       ? "-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: " + (buka ? "#15803d;" : "#dc2626;")
+                       : "-fx-font-size: 12px; -fx-text-fill: #333;")
+                    : "-fx-font-size: 12px; -fx-text-fill: #e53e3e;");
 
             jamRow.getChildren().addAll(hariLbl, sp, jamTxt);
 
             if (isToday) {
                 Label todayChip = new Label("Hari ini");
                 todayChip.setStyle(
-                    "-fx-background-color: " + (buka ? "#dcfce7" : "#fee2e2") + ";" +
-                    "-fx-text-fill: " + (buka ? "#15803d" : "#dc2626") + ";" +
-                    "-fx-font-size: 10px; -fx-font-weight: bold;" +
-                    "-fx-padding: 2 8; -fx-background-radius: 20;");
+                        "-fx-background-color: " + (buka ? "#dcfce7" : "#fee2e2") + ";" +
+                                "-fx-text-fill: " + (buka ? "#15803d" : "#dc2626") + ";" +
+                                "-fx-font-size: 10px; -fx-font-weight: bold;" +
+                                "-fx-padding: 2 8; -fx-background-radius: 20;");
                 HBox.setMargin(todayChip, new Insets(0, 0, 0, 10));
                 jamRow.getChildren().add(todayChip);
             }
@@ -478,8 +478,8 @@ public class ChatManager {
                 liburRow.setAlignment(Pos.CENTER_LEFT);
                 liburRow.setPadding(new Insets(6, 10, 6, 10));
                 liburRow.setStyle(
-                    "-fx-background-color: #fff8e1; -fx-background-radius: 8;" +
-                    "-fx-border-color: #fde68a; -fx-border-width: 1; -fx-border-radius: 8;");
+                        "-fx-background-color: #fff8e1; -fx-background-radius: 8;" +
+                                "-fx-border-color: #fde68a; -fx-border-width: 1; -fx-border-radius: 8;");
 
                 Label tglLibur = new Label(hl.getTanggal());
                 tglLibur.setStyle("-fx-font-size: 11px; -fx-text-fill: #92400e; -fx-font-weight: bold;");
@@ -492,8 +492,8 @@ public class ChatManager {
                 boolean isTutup = hl.isTutup();
                 Label statusChip = new Label(isTutup ? "Tutup" : "Tetap Buka");
                 statusChip.setStyle(isTutup
-                    ? "-fx-background-color: #fee2e2; -fx-text-fill: #dc2626; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 2 8; -fx-background-radius: 20;"
-                    : "-fx-background-color: #dcfce7; -fx-text-fill: #15803d; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 2 8; -fx-background-radius: 20;");
+                        ? "-fx-background-color: #fee2e2; -fx-text-fill: #dc2626; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 2 8; -fx-background-radius: 20;"
+                        : "-fx-background-color: #dcfce7; -fx-text-fill: #15803d; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 2 8; -fx-background-radius: 20;");
 
                 liburRow.getChildren().addAll(tglLibur, namaLibur, statusChip);
                 liburSection.getChildren().add(liburRow);
@@ -573,7 +573,7 @@ public class ChatManager {
             thumbPane.setMaxSize(120, 120);
             thumbPane.setStyle(
                     "-fx-background-color: #f0eeff;" +
-                    "-fx-background-radius: 12;");
+                            "-fx-background-radius: 12;");
 
             String imgUrl = prod.getGambarUrl();
             boolean imgLoaded = false;
@@ -627,10 +627,17 @@ public class ChatManager {
             Label badgeKulit = new Label("\uD83C\uDF3F " + jenisKulit);
             badgeKulit.setStyle(
                     "-fx-font-size: 10px; -fx-text-fill: #276a3f;" +
-                    "-fx-background-color: #e6f4ea;" +
-                    "-fx-background-radius: 20; -fx-padding: 3 10 3 10;");
+                            "-fx-background-color: #e6f4ea;" +
+                            "-fx-background-radius: 20; -fx-padding: 3 10 3 10;");
 
-            HBox badgeRow = new HBox(badgeKulit);
+            String areaTubuhStr = prod.getAreaTubuh() != null ? prod.getAreaTubuh() : "Muka";
+            Label badgeArea = new Label("\uD83D\uDCCD " + areaTubuhStr);
+            badgeArea.setStyle(
+                    "-fx-font-size: 10px; -fx-text-fill: #7c4daa;" +
+                            "-fx-background-color: #f3e8ff;" +
+                            "-fx-background-radius: 20; -fx-padding: 3 10 3 10;");
+
+            HBox badgeRow = new HBox(6, badgeKulit, badgeArea);
             badgeRow.setAlignment(Pos.CENTER_LEFT);
 
             VBox infoBox = new VBox(6, nameLbl, katLbl, hargaLbl, kandLbl, badgeRow);
@@ -645,14 +652,14 @@ public class ChatManager {
 
             String sNormal =
                     "-fx-background-color: white;" +
-                    "-fx-border-color: #e8e8f0; -fx-border-width: 1;" +
-                    "-fx-border-radius: 14; -fx-background-radius: 14;" +
-                    "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.07), 8, 0, 0, 2);";
+                            "-fx-border-color: #e8e8f0; -fx-border-width: 1;" +
+                            "-fx-border-radius: 14; -fx-background-radius: 14;" +
+                            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.07), 8, 0, 0, 2);";
             String sHover =
                     "-fx-background-color: #f8f7ff;" +
-                    "-fx-border-color: #4B3FC8; -fx-border-width: 1.5;" +
-                    "-fx-border-radius: 14; -fx-background-radius: 14;" +
-                    "-fx-effect: dropshadow(gaussian, rgba(75,63,200,0.15), 10, 0, 0, 3);";
+                            "-fx-border-color: #4B3FC8; -fx-border-width: 1.5;" +
+                            "-fx-border-radius: 14; -fx-background-radius: 14;" +
+                            "-fx-effect: dropshadow(gaussian, rgba(75,63,200,0.15), 10, 0, 0, 3);";
 
             card.setStyle(sNormal);
             card.setOnMouseEntered(e -> card.setStyle(sHover));
@@ -759,8 +766,8 @@ public class ChatManager {
             if (tag != null && !tag.isBlank()) {
                 Label tagLbl = new Label(tag);
                 tagLbl.setStyle(
-                    "-fx-background-color: #f0eeff; -fx-text-fill: #4B3FC8;" +
-                    "-fx-font-size: 9px; -fx-padding: 2 7; -fx-background-radius: 20;");
+                        "-fx-background-color: #f0eeff; -fx-text-fill: #4B3FC8;" +
+                                "-fx-font-size: 9px; -fx-padding: 2 7; -fx-background-radius: 20;");
                 botRow.getChildren().add(tagLbl);
             }
 
@@ -898,7 +905,7 @@ public class ChatManager {
     }
 
     /** Format tanggal
-    /** Format tanggal dari "yyyy-MM-dd" ke "Senin, 10 Mei 2026" */
+     /** Format tanggal dari "yyyy-MM-dd" ke "Senin, 10 Mei 2026" */
     private String formatTanggal(String raw) {
         try {
             LocalDate d = LocalDate.parse(raw);
@@ -916,5 +923,16 @@ public class ChatManager {
                 + "\u2022 Ketik kategori (moisturizer, toner, serum, dll)\n"
                 + "\u2022 Tanya rekomendasi untuk jenis kulit tertentu\n"
                 + "\u2022 Tanya jam buka toko atau lokasi toko");
+    }
+
+
+    @FXML
+    public void handleKembali() {
+        try {
+            javafx.stage.Stage stage = (javafx.stage.Stage) inputField.getScene().getWindow();
+            new org.sahabatlaris.chatbot.ui.Main().showPilihMode(stage);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -1,6 +1,6 @@
 package org.sahabatlaris.chatbot.Controller;
 
-import org.sahabatlaris.chatbot.ui.AppUI;
+import org.sahabatlaris.chatbot.ui.Main;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
@@ -44,7 +44,7 @@ public class AdminLoginController {
         if (user.equals(ADMIN_USERNAME) && pass.equals(ADMIN_PASSWORD)) {
             try {
                 Stage stage = (Stage) usernameField.getScene().getWindow();
-                new AppUI().showAdmin(stage);
+                new Main().showAdmin(stage);
             } catch (Exception e) {
                 e.printStackTrace();
                 setError("Gagal membuka panel admin: " + e.getMessage());
@@ -66,5 +66,15 @@ public class AdminLoginController {
 
     private void setError(String msg) {
         if (errorLabel != null) errorLabel.setText(msg);
+    }
+
+    @FXML
+    public void handleKembali() {
+        try {
+            Stage stage = (Stage) usernameField.getScene().getWindow();
+            new org.sahabatlaris.chatbot.ui.Main().showPilihMode(stage);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

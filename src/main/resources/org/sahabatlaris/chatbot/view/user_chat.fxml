@@ -70,6 +70,19 @@
                                -fx-border-color: #e0defc;
                                -fx-border-width: 1;
                                -fx-border-radius: 20;"/>
+
+                <Button text="←  Kembali"
+                        onAction="#handleKembali"
+                        style="-fx-background-color: #fff0f0;
+                               -fx-text-fill: #e53e3e;
+                               -fx-font-size: 12px;
+                               -fx-font-weight: bold;
+                               -fx-background-radius: 20;
+                               -fx-padding: 8 16;
+                               -fx-cursor: hand;
+                               -fx-border-color: #ffd0d0;
+                               -fx-border-width: 1;
+                               -fx-border-radius: 20;"/>
             </HBox>
         </HBox>
     </top>

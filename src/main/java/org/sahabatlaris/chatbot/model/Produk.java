@@ -8,6 +8,7 @@ public class Produk {
     private final StringProperty  kategori    = new SimpleStringProperty();
     private final LongProperty    harga       = new SimpleLongProperty();
     private final StringProperty  kandungan   = new SimpleStringProperty();
+    private final StringProperty  deskripsi   = new SimpleStringProperty();
     private final BooleanProperty aktif       = new SimpleBooleanProperty(true);
     private final StringProperty  jenisKulit  = new SimpleStringProperty();
     private final StringProperty  areaTubuh   = new SimpleStringProperty();
@@ -38,6 +39,7 @@ public class Produk {
         this.kategori.set(kategori);
         this.harga.set(harga);
         this.kandungan.set(kandungan);
+        this.deskripsi.set("");
         this.aktif.set(aktif);
         this.jenisKulit.set(jenisKulit  != null ? jenisKulit  : "Semua Jenis Kulit");
         this.areaTubuh.set(areaTubuh    != null ? areaTubuh   : "Muka");
@@ -68,6 +70,11 @@ public class Produk {
     public String getKandungan()               { return kandungan.get(); }
     public void setKandungan(String v)         { kandungan.set(v); }
     public StringProperty kandunganProperty()  { return kandungan; }
+
+    // ── deskripsi ────────────────────────────────────────────────────────────
+    public String getDeskripsi()               { return deskripsi.get(); }
+    public void setDeskripsi(String v)         { deskripsi.set(v != null ? v : ""); }
+    public StringProperty deskripsiProperty()  { return deskripsi; }
 
     // ── aktif ────────────────────────────────────────────────────────────────
     public boolean isAktif()                   { return aktif.get(); }
