@@ -11,7 +11,7 @@ import java.util.List;
 public class DatabaseService {
 
     private static DatabaseService instance;
-    private static final String URL = "jdbc:sqlite:D:/SahabatLaris/sahabatlaris.db";
+    private static final String URL = "jdbc:sqlite:target/sahabatlaris.db";
 
     private DatabaseService() {
         try {
@@ -95,15 +95,12 @@ public class DatabaseService {
             isiInfoTokoDefault();
             isiHariLiburDefault();
             isiContohPertanyaanDefault();
-            // Tambah kolom deskripsi jika belum ada (upgrade database lama)
             try { stmt.execute("ALTER TABLE produk ADD COLUMN deskripsi TEXT"); }
             catch (SQLException ignored) {}
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
-
-
 
     public void tambahProduk(Produk p) {
         String kode = (p.getKodeProduk() == null || p.getKodeProduk().isBlank())
@@ -287,7 +284,6 @@ public class DatabaseService {
         }
     }
 
-
     private void isiJamOperasionalDefault() {
         try (Connection conn = this.connect();
              ResultSet rs = conn.createStatement().executeQuery("SELECT COUNT(*) FROM jam_operasional")) {
@@ -339,7 +335,6 @@ public class DatabaseService {
         }
     }
 
-
     public List<HariLibur> getAllHariLibur() {
         List<HariLibur> list = new ArrayList<>();
         String sql = "SELECT tanggal, nama, status, keterangan FROM hari_libur ORDER BY tanggal";
@@ -382,7 +377,6 @@ public class DatabaseService {
         }
     }
 
-
     public String[] cekStatusTokoHariIni() {
         LocalDate hari = LocalDate.now();
         LocalTime sekarang = LocalTime.now();
@@ -394,7 +388,6 @@ public class DatabaseService {
             }
         }
 
-        // Nama hari (Bahasa Indonesia)
         String namaHari;
         switch (hari.getDayOfWeek()) {
             case MONDAY:    namaHari = "Senin";   break;
@@ -433,7 +426,6 @@ public class DatabaseService {
         }
         return new String[]{"buka", namaHari, "08:00", "21:00"};
     }
-
 
     public void tambahRiwayat(String pesan, String balasan, String tag) {
         String sql = "INSERT INTO riwayat_chat(pesan,balasan,tag) VALUES(?,?,?)";
@@ -476,9 +468,6 @@ public class DatabaseService {
         }
     }
 
-    // =========================================================================
-    // DATA DEFAULT INFO TOKO & HARI LIBUR
-    // =========================================================================
     private void isiInfoTokoDefault() {
         try (Connection conn = this.connect();
              ResultSet rs = conn.createStatement().executeQuery("SELECT COUNT(*) FROM info_toko")) {
@@ -604,22 +593,11 @@ public class DatabaseService {
         }
     }
 
-
-    // =========================================================================
-    // TEST HARI LIBUR
-    // (logika dari TestHariLibur dipindahkan ke sini agar tidak ada run baru)
-    // =========================================================================
-
-    /**
-     * Menjalankan uji cek status toko berdasarkan daftar hari libur dari database.
-     * Panggil via: DatabaseService.getInstance().testHariLibur()
-     */
     public void testHariLibur() {
         System.out.println("========================================");
         System.out.println("   TEST HARI LIBUR - STATUS TOKO");
         System.out.println("========================================\n");
 
-        // Ambil dari database; jika kosong pakai data simulasi sementara
         List<HariLibur> daftarLibur = getAllHariLibur();
         if (daftarLibur.isEmpty()) {
             daftarLibur = new ArrayList<>();
@@ -652,9 +630,6 @@ public class DatabaseService {
         cetakStatusHariLibur(LocalDate.now(), daftarLibur);
     }
 
-    /**
-     * Mencetak status toko untuk satu tanggal tertentu.
-     */
     private void cetakStatusHariLibur(LocalDate tanggal, List<HariLibur> daftarLibur) {
         System.out.println("Tanggal : " + tanggal);
 
@@ -677,12 +652,6 @@ public class DatabaseService {
 
         System.out.println("----------------------------------------\n");
     }
-
-
-    // =========================================================================
-    // INNER CLASS: HariLibur
-    // (dipindahkan dari model/HariLibur.java - tidak ada file class baru)
-    // =========================================================================
 
     public static class HariLibur {
         private String tanggal;
