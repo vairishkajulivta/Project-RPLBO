@@ -3,6 +3,7 @@ package org.sahabatlaris.chatbot.service;
 import org.sahabatlaris.chatbot.model.Produk;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ChatbotService {
 
@@ -20,12 +21,10 @@ public class ChatbotService {
             return cekStatusToko();
         }
 
-
         if (p.contains("lokasi") || p.contains("alamat") || p.contains("dimana")
                 || p.contains("di mana") || p.contains("maps") || p.contains("peta")) {
             return infoLokasi();
         }
-
 
         if (p.matches(".*\\b(halo|hai|hello|hi|hei|selamat)\\b.*")) {
             return "Halo! Selamat datang di SahabatLaris \uD83D\uDC4B\n"
@@ -41,7 +40,6 @@ public class ChatbotService {
                     + "\u2022 Apakah Somethinc Calm Down masih tersedia?";
         }
 
-
         if (p.contains("bantuan") || p.contains("help") || p.contains("bisa apa")) {
             return "Saya bisa membantu Anda:\n"
                     + "\u2022 Cek harga produk\n"
@@ -51,87 +49,42 @@ public class ChatbotService {
                     + "Contoh: 'harga toner berapa?' atau cukup ketik 'toner'";
         }
 
+        // ── Deteksi kategori dari pesan ──────────────────────────────────────
+        String kategoriTerdeteksi = deteksiKategori(p);
 
-        if (p.contains("kulit kering") || p.contains("kering")) {
-            lastProdukResult = getProdukByJenisKulit("Kulit Kering");
-            return formatProdukJenisKulit("Kulit Kering", lastProdukResult);
-        }
-        if (p.contains("kulit berminyak") || p.contains("berminyak")) {
-            lastProdukResult = getProdukByJenisKulit("Kulit Berminyak");
-            return formatProdukJenisKulit("Kulit Berminyak", lastProdukResult);
-        }
-        if (p.contains("kulit berjerawat") || p.contains("berjerawat") || p.contains("jerawat")) {
-            lastProdukResult = getProdukByJenisKulit("Kulit Berjerawat");
-            return formatProdukJenisKulit("Kulit Berjerawat", lastProdukResult);
-        }
-        if (p.contains("kulit sensitif") || p.contains("sensitif")) {
-            lastProdukResult = getProdukByJenisKulit("Kulit Sensitif");
-            return formatProdukJenisKulit("Kulit Sensitif", lastProdukResult);
-        }
-        if (p.contains("kulit normal") || p.contains("normal")) {
-            lastProdukResult = getProdukByJenisKulit("Kulit Normal");
-            return formatProdukJenisKulit("Kulit Normal", lastProdukResult);
-        }
-        if (p.contains("kulit menua") || p.contains("menua") || p.contains("anti aging") || p.contains("penuaan")) {
-            lastProdukResult = getProdukByJenisKulit("Kulit Menua");
-            return formatProdukJenisKulit("Kulit Menua", lastProdukResult);
-        }
-        if (p.contains("semua jenis kulit") || (p.contains("semua") && p.contains("kulit"))) {
-            lastProdukResult = getProdukByJenisKulit("Semua Jenis Kulit");
-            return formatProdukJenisKulit("Semua Jenis Kulit", lastProdukResult);
+        // ── Deteksi jenis kulit dari pesan ───────────────────────────────────
+        String jenisKulitTerdeteksi = deteksiJenisKulit(p);
+
+        // ── Deteksi area tubuh dari pesan ────────────────────────────────────
+        String areaTubuhTerdeteksi = deteksiAreaTubuh(p);
+
+        // ── KOMBINASI: kategori + jenis kulit ────────────────────────────────
+        if (kategoriTerdeteksi != null && jenisKulitTerdeteksi != null) {
+            List<Produk> hasil = getProdukByKategoriDanJenisKulit(kategoriTerdeteksi, jenisKulitTerdeteksi);
+            lastProdukResult = hasil;
+            return formatProdukKombinasiKulit(kategoriTerdeteksi, jenisKulitTerdeteksi, hasil);
         }
 
-
-        if (mengandungKategori(p, "pelembab", "moisturizer", "lotion", "krim wajah")) {
-            lastProdukResult = db.getProdukByKategori("Pelembab");
-            return cariProdukByKategori("Pelembab");
-        }
-        if (mengandungKategori(p, "toner", "toning")) {
-            lastProdukResult = db.getProdukByKategori("Toner");
-            return cariProdukByKategori("Toner");
-        }
-        if (mengandungKategori(p, "serum")) {
-            lastProdukResult = db.getProdukByKategori("Serum");
-            return cariProdukByKategori("Serum");
-        }
-        if (mengandungKategori(p, "pembersih", "face wash", "sabun muka", "cleanser", "facial wash")) {
-            lastProdukResult = db.getProdukByKategori("Facial Wash");
-            return cariProdukByKategori("Facial Wash");
-        }
-        if (mengandungKategori(p, "sunscreen", "spf", "tabir surya", "sun protection")) {
-            lastProdukResult = db.getProdukByKategori("Sunscreen");
-            return cariProdukByKategori("Sunscreen");
-        }
-        if (mengandungKategori(p, "exfoliat", "scrub", "aha", "bha", "exfo")) {
-            lastProdukResult = db.getProdukByKategori("Exfoliator");
-            return cariProdukByKategori("Exfoliator");
-        }
-        if (mengandungKategori(p, "body care", "badan", "tubuh", "lotion badan")) {
-            lastProdukResult = db.getProdukByKategori("Body Care");
-            return cariProdukByKategori("Body Care");
-        }
-        if (mengandungKategori(p, "eye care", "mata", "eye cream")) {
-            lastProdukResult = db.getProdukByKategori("Eye Care");
-            return cariProdukByKategori("Eye Care");
-        }
-        if (mengandungKategori(p, "lip care", "bibir", "lip")) {
-            lastProdukResult = db.getProdukByKategori("Lip Care");
-            return cariProdukByKategori("Lip Care");
-        }
-        if (mengandungKategori(p, "hair care", "rambut", "shampoo")) {
-            lastProdukResult = db.getProdukByKategori("Hair Care");
-            return cariProdukByKategori("Hair Care");
-        }
-        if (mengandungKategori(p, "acne care", "acne patch", "patch")) {
-            lastProdukResult = db.getProdukByKategori("Acne Care");
-            return cariProdukByKategori("Acne Care");
-        }
-        if (mengandungKategori(p, "hand care", "tangan", "kaki")) {
-            lastProdukResult = db.getProdukByKategori("Hand Care");
-            return cariProdukByKategori("Hand Care");
+        // ── KOMBINASI: kategori + area tubuh ─────────────────────────────────
+        if (kategoriTerdeteksi != null && areaTubuhTerdeteksi != null) {
+            List<Produk> hasil = getProdukByKategoriDanArea(kategoriTerdeteksi, areaTubuhTerdeteksi);
+            lastProdukResult = hasil;
+            return formatProdukKombinasiArea(kategoriTerdeteksi, areaTubuhTerdeteksi, hasil);
         }
 
+        // ── Hanya jenis kulit ────────────────────────────────────────────────
+        if (jenisKulitTerdeteksi != null) {
+            lastProdukResult = getProdukByJenisKulit(jenisKulitTerdeteksi);
+            return formatProdukJenisKulit(jenisKulitTerdeteksi, lastProdukResult);
+        }
 
+        // ── Hanya kategori ───────────────────────────────────────────────────
+        if (kategoriTerdeteksi != null) {
+            lastProdukResult = db.getProdukByKategori(kategoriTerdeteksi);
+            return cariProdukByKategori(kategoriTerdeteksi);
+        }
+
+        // ── Nama produk spesifik ─────────────────────────────────────────────
         List<Produk> cocok = getProdukMentioned(pesan);
         if (!cocok.isEmpty()) {
             StringBuilder sb = new StringBuilder("Informasi produk yang Anda cari:\n\n");
@@ -143,12 +96,11 @@ public class ChatbotService {
             return sb.toString().trim();
         }
 
-
+        // ── Rekomendasi umum ─────────────────────────────────────────────────
         if (p.contains("rekomendasi") || p.contains("saran") || p.contains("rekomen")) {
             lastProdukResult = db.getAllProduk();
             return "Berikut rekomendasi produk skincare kami:\n\n" + cariSemuaProduk();
         }
-
 
         if (p.contains("produk") || p.contains("ada apa")
                 || p.contains("semua") || p.contains("daftar")
@@ -157,12 +109,10 @@ public class ChatbotService {
             return cariSemuaProduk();
         }
 
-
         if (p.contains("harga") || p.contains("berapa") || p.contains("murah") || p.contains("mahal")) {
             lastProdukResult = db.getAllProduk();
             return cariSemuaProduk();
         }
-
 
         return "Maaf, saya belum memahami pertanyaan Anda \uD83D\uDE4F\n\n"
                 + "Coba ketik salah satu:\n"
@@ -172,7 +122,126 @@ public class ChatbotService {
                 + "\u2022 Nama produk secara langsung";
     }
 
+    // =========================================================================
+    // Deteksi kategori dari teks pesan
+    // =========================================================================
+    private String deteksiKategori(String p) {
+        if (mengandungKategori(p, "pelembab", "moisturizer", "krim wajah")) return "Pelembab";
+        if (mengandungKategori(p, "toner", "toning"))                        return "Toner";
+        if (mengandungKategori(p, "serum"))                                  return "Serum";
+        if (mengandungKategori(p, "pembersih", "face wash", "sabun muka",
+                "cleanser", "facial wash", "sabun wajah"))                   return "Facial Wash";
+        if (mengandungKategori(p, "sunscreen", "spf",
+                "tabir surya", "sun protection"))                             return "Sunscreen";
+        if (mengandungKategori(p, "exfoliat", "scrub", "aha", "bha", "exfo")) return "Exfoliator";
+        if (mengandungKategori(p, "body care", "lotion badan"))              return "Body Care";
+        if (mengandungKategori(p, "eye care", "eye cream"))                  return "Eye Care";
+        if (mengandungKategori(p, "lip care", "lip balm", "lip"))            return "Lip Care";
+        if (mengandungKategori(p, "hair care", "shampoo"))                   return "Hair Care";
+        if (mengandungKategori(p, "acne care", "acne patch", "patch"))       return "Acne Care";
+        if (mengandungKategori(p, "hand care"))                              return "Hand Care";
+        // "lotion" tanpa konteks badan → Pelembab
+        if (p.contains("lotion") && !p.contains("badan") && !p.contains("tubuh")) return "Pelembab";
+        return null;
+    }
 
+    // =========================================================================
+    // Deteksi jenis kulit dari teks pesan
+    // =========================================================================
+    private String deteksiJenisKulit(String p) {
+        if (p.contains("kulit kering")    || p.contains("kering"))           return "Kulit Kering";
+        if (p.contains("kulit berminyak") || p.contains("berminyak"))        return "Kulit Berminyak";
+        if (p.contains("kulit berjerawat")|| p.contains("berjerawat")
+                || p.contains("jerawat"))                                    return "Kulit Berjerawat";
+        if (p.contains("kulit sensitif")  || p.contains("sensitif"))        return "Kulit Sensitif";
+        if (p.contains("kulit normal")    || p.contains("normal"))           return "Kulit Normal";
+        if (p.contains("kulit menua")     || p.contains("menua")
+                || p.contains("anti aging") || p.contains("penuaan"))       return "Kulit Menua";
+        if (p.contains("semua jenis kulit")
+                || (p.contains("semua") && p.contains("kulit")))             return "Semua Jenis Kulit";
+        return null;
+    }
+
+    // =========================================================================
+    // Deteksi area tubuh dari teks pesan (selain wajah/muka yang sudah default)
+    // =========================================================================
+    private String deteksiAreaTubuh(String p) {
+        if (p.contains("badan") || p.contains("tubuh") || p.contains("body")) return "Badan";
+        if (p.contains("mata"))                                               return "Mata";
+        if (p.contains("bibir"))                                              return "Bibir";
+        if (p.contains("rambut"))                                             return "Rambut";
+        if (p.contains("tangan") || p.contains("kaki"))                      return "Tangan";
+        return null;
+    }
+
+    // =========================================================================
+    // Filter: kategori + jenis kulit
+    // =========================================================================
+    private List<Produk> getProdukByKategoriDanJenisKulit(String kategori, String jenisKulit) {
+        List<Produk> byKategori = db.getProdukByKategori(kategori);
+        List<Produk> hasil = new ArrayList<>();
+        for (Produk prod : byKategori) {
+            String jk = prod.getJenisKulit();
+            if (jk != null && (jk.equalsIgnoreCase(jenisKulit)
+                    || jk.equalsIgnoreCase("Semua Jenis Kulit"))) {
+                hasil.add(prod);
+            }
+        }
+        // Jika tidak ada yang cocok persis, kembalikan semua produk kategori itu
+        return hasil.isEmpty() ? byKategori : hasil;
+    }
+
+    // =========================================================================
+    // Filter: kategori + area tubuh
+    // =========================================================================
+    private List<Produk> getProdukByKategoriDanArea(String kategori, String areaTubuh) {
+        List<Produk> byKategori = db.getProdukByKategori(kategori);
+        List<Produk> hasil = new ArrayList<>();
+        for (Produk prod : byKategori) {
+            String at = prod.getAreaTubuh();
+            if (at != null && at.toLowerCase().contains(areaTubuh.toLowerCase())) {
+                hasil.add(prod);
+            }
+        }
+        // Jika tidak ada yang cocok persis, kembalikan semua produk kategori itu
+        return hasil.isEmpty() ? byKategori : hasil;
+    }
+
+    // =========================================================================
+    // Format output kombinasi kategori + jenis kulit
+    // =========================================================================
+    private String formatProdukKombinasiKulit(String kategori, String jenisKulit, List<Produk> list) {
+        if (list.isEmpty())
+            return "Tidak ada produk " + kategori + " untuk " + jenisKulit + " saat ini.";
+        StringBuilder sb = new StringBuilder(
+                "Rekomendasi \uD83C\uDF1F " + kategori + " untuk " + jenisKulit + ":\n\n");
+        for (Produk prod : list) {
+            sb.append("\u2022 ").append(prod.getNamaProduk()).append("\n");
+            sb.append("  ").append(prod.getHargaFormatted()).append("\n");
+            sb.append("  Kandungan: ").append(prod.getKandungan()).append("\n\n");
+        }
+        return sb.toString().trim();
+    }
+
+    // =========================================================================
+    // Format output kombinasi kategori + area tubuh
+    // =========================================================================
+    private String formatProdukKombinasiArea(String kategori, String areaTubuh, List<Produk> list) {
+        if (list.isEmpty())
+            return "Tidak ada produk " + kategori + " untuk area " + areaTubuh + " saat ini.";
+        StringBuilder sb = new StringBuilder(
+                "Rekomendasi \uD83D\uDCA1 " + kategori + " untuk " + areaTubuh + ":\n\n");
+        for (Produk prod : list) {
+            sb.append("\u2022 ").append(prod.getNamaProduk()).append("\n");
+            sb.append("  ").append(prod.getHargaFormatted()).append("\n");
+            sb.append("  Kandungan: ").append(prod.getKandungan()).append("\n\n");
+        }
+        return sb.toString().trim();
+    }
+
+    // =========================================================================
+    // Metode-metode yang sudah ada (tidak diubah)
+    // =========================================================================
 
     public List<Produk> getLastProdukResult() {
         return lastProdukResult;
@@ -183,7 +252,6 @@ public class ChatbotService {
         return false;
     }
 
-    /** Cari produk berdasarkan jenis kulit */
     private List<Produk> getProdukByJenisKulit(String jenisKulit) {
         List<Produk> semua = db.getAllProduk();
         List<Produk> hasil = new ArrayList<>();
@@ -249,25 +317,19 @@ public class ChatbotService {
     public List<Produk> getProdukDariJawaban(String pesan, String jawaban) {
         String pesanLower = pesan.toLowerCase();
 
-        if (mengandungKategori(pesanLower, "pelembab", "moisturizer", "lotion", "krim wajah"))
-            return db.getProdukByKategori("Pelembab");
-        if (mengandungKategori(pesanLower, "toner", "toning"))
-            return db.getProdukByKategori("Toner");
-        if (mengandungKategori(pesanLower, "serum"))
-            return db.getProdukByKategori("Serum");
-        if (mengandungKategori(pesanLower, "pembersih", "face wash", "sabun muka", "cleanser", "facial wash"))
-            return db.getProdukByKategori("Facial Wash");
-        if (mengandungKategori(pesanLower, "sunscreen", "spf", "tabir surya", "sun protection"))
-            return db.getProdukByKategori("Sunscreen");
+        // Coba kombinasi dulu
+        String kategori  = deteksiKategori(pesanLower);
+        String jenisKulit = deteksiJenisKulit(pesanLower);
+        String areaTubuh  = deteksiAreaTubuh(pesanLower);
 
-        if (pesanLower.contains("kulit kering") || pesanLower.contains("kering"))
-            return getProdukByJenisKulit("Kulit Kering");
-        if (pesanLower.contains("kulit berminyak") || pesanLower.contains("berminyak"))
-            return getProdukByJenisKulit("Kulit Berminyak");
-        if (pesanLower.contains("kulit berjerawat") || pesanLower.contains("jerawat"))
-            return getProdukByJenisKulit("Kulit Berjerawat");
-        if (pesanLower.contains("kulit sensitif") || pesanLower.contains("sensitif"))
-            return getProdukByJenisKulit("Kulit Sensitif");
+        if (kategori != null && jenisKulit != null)
+            return getProdukByKategoriDanJenisKulit(kategori, jenisKulit);
+        if (kategori != null && areaTubuh != null)
+            return getProdukByKategoriDanArea(kategori, areaTubuh);
+        if (kategori != null)
+            return db.getProdukByKategori(kategori);
+        if (jenisKulit != null)
+            return getProdukByJenisKulit(jenisKulit);
 
         if (pesanLower.contains("semua") || pesanLower.contains("produk")
                 || pesanLower.contains("rekomendasi") || pesanLower.contains("daftar")
@@ -286,7 +348,6 @@ public class ChatbotService {
         StringBuilder sb = new StringBuilder();
         sb.append("\uD83C\uDFEA Status ").append(namaToko).append("\n\n");
 
-        // FIX: pakai equalsIgnoreCase agar tidak case-sensitive
         if ("buka".equalsIgnoreCase(status[0])) {
             sb.append("✅ Toko sedang BUKA\n");
         } else if ("belum_buka".equalsIgnoreCase(status[0])) {
