@@ -612,7 +612,7 @@ public class ChatManager {
             nameLbl.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #1a1a2e;");
             nameLbl.setWrapText(true);
 
-            Label katLbl = new Label("\u2192 " + emojiKategori(prod.getKategori()) + " " + prod.getKategori());
+            Label katLbl = new Label("\u2194 " + emojiKategori(prod.getKategori()) + " " + prod.getKategori());
             katLbl.setStyle("-fx-font-size: 11px; -fx-text-fill: #888;");
 
             Label hargaLbl = new Label(prod.getHargaFormatted());
