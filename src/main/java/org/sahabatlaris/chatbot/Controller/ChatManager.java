@@ -76,11 +76,11 @@ public class ChatManager {
         chips.setPadding(new Insets(8, 0, 0, 0));
 
         String[][] quickReplies = {
-                {"\uD83C\uDF3F Kulit Sensitif",   "produk untuk kulit sensitif"},
+                {"\uD83C\uDF38 Kulit Sensitif",   "produk untuk kulit sensitif"},
                 {"\uD83D\uDCAB Rekomendasi",       "rekomendasi produk"},
                 {"\uD83D\uDCB0 Cek Harga",         "harga semua produk"},
-                {"\uD83E\uDDF4 Serum",             "serum"},
-                {"\uD83E\uDDF4 Toner",             "toner"},
+                {"\u2728 Serum",                   "serum"},
+                {"\uD83D\uDCA7 Toner",             "toner"},
                 {"\uD83C\uDFEA Status Toko",       "status toko"}
         };
 
@@ -612,7 +612,7 @@ public class ChatManager {
             nameLbl.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #1a1a2e;");
             nameLbl.setWrapText(true);
 
-            Label katLbl = new Label("\u2194\uFE0F " + prod.getKategori());
+            Label katLbl = new Label("\u2192 " + emojiKategori(prod.getKategori()) + " " + prod.getKategori());
             katLbl.setStyle("-fx-font-size: 11px; -fx-text-fill: #888;");
 
             Label hargaLbl = new Label(prod.getHargaFormatted());
@@ -806,6 +806,26 @@ public class ChatManager {
             case "Sapaan":      return "👋";
             case "Lokasi":      return "📍";
             default:            return "💬";
+        }
+    }
+
+    /** Emoji untuk label kategori di kartu produk */
+    private String emojiKategori(String kategori) {
+        if (kategori == null) return "\u2728";
+        switch (kategori) {
+            case "Serum":       return "\u2728";        // ✨
+            case "Toner":       return "\uD83D\uDCA7";  // 💧
+            case "Pelembab":    return "\uD83C\uDF3F";  // 🌿
+            case "Facial Wash": return "\uD83D\uDCA6";  // 💦
+            case "Sunscreen":   return "\u2600";        // ☀
+            case "Exfoliator":  return "\uD83C\uDF00";  // 🌀
+            case "Body Care":   return "\uD83D\uDEBF";  // 🚿
+            case "Eye Care":    return "\uD83D\uDC41";  // 👁
+            case "Lip Care":    return "\uD83D\uDC44";  // 👄
+            case "Hair Care":   return "\uD83D\uDC87";  // 💆
+            case "Hand Care":   return "\uD83D\uDC50";  // 👐
+            case "Acne Care":   return "\u2665";        // ♥
+            default:            return "\uD83C\uDF3F";  // 🌿
         }
     }
 
