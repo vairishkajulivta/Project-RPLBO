@@ -425,8 +425,10 @@ public class AdminController {
         fNama.getStyleClass().add("info-field");
 
         ComboBox<String> fKategori = new ComboBox<>();
-        fKategori.getItems().addAll("Pelembab","Toner","Serum","Pembersih Muka",
-                "Chemical Sunscreen","Tinted Sunscreen","Exfoliator");
+        fKategori.getItems().addAll(
+                "Pelembab", "Toner", "Serum", "Facial Wash",
+                "Sunscreen", "Exfoliator", "Body Care", "Eye Care",
+                "Lip Care", "Hair Care", "Acne Care", "Hand Care");
         fKategori.setPromptText("Pilih Kategori");
         fKategori.setMaxWidth(Double.MAX_VALUE);
 
