@@ -262,32 +262,31 @@ public class ChatManager {
                 return;
             }
 
-            List<Produk> produkDisebut = botService.getProdukMentioned(pesan);
-            if (!produkDisebut.isEmpty()) {
-                addBotProductCards(produkDisebut);
-                String ringkasan = produkDisebut.size() + " produk ditampilkan: " +
-                        produkDisebut.get(0).getNamaProduk() +
-                        (produkDisebut.size() > 1 ? ", dll." : ".");
+            // Selalu pakai cariJawaban agar filter area+kulit berjalan dengan benar
+            String jawaban = botService.cariJawaban(pesan);
+            List<Produk> produkResult = botService.getLastProdukResult();
+
+            // Jika tidak ada dari lastProdukResult, coba getProdukMentioned
+            // hanya untuk kasus nama produk spesifik disebut langsung
+            if ((produkResult == null || produkResult.isEmpty())
+                    && !jawaban.startsWith("Maaf")
+                    && !jawaban.startsWith("Halo")
+                    && !jawaban.startsWith("Saya bisa")) {
+                produkResult = botService.getProdukMentioned(pesan);
+            }
+
+            if (produkResult != null && !produkResult.isEmpty()) {
+                String header = jawaban.split("\n")[0];
+                addBotMessage(header);
+                addBotProductCards(produkResult);
+                String ringkasan = header + " (" + produkResult.size() + " produk)";
                 dataService.tambahRiwayat(pesan, ringkasan, "Produk");
                 muatSidebarRiwayat();
             } else {
-                String jawaban = botService.cariJawaban(pesan);
-                // Ambil produk dari jawaban (fallback jika getLastProdukResult tidak tersedia)
-                List<Produk> produkResult = botService.getProdukDariJawaban(pesan, jawaban);
-                if (produkResult != null && !produkResult.isEmpty()) {
-                    String header = jawaban.split("\n")[0];
-                    addBotMessage(header);
-                    addBotProductCards(produkResult);
-                    String ringkasan = header + " (" + produkResult.size() + " produk)";
-                    dataService.tambahRiwayat(pesan, ringkasan, "Produk");
-                    muatSidebarRiwayat();
-                } else {
-                    addBotMessage(jawaban);
-                    // Tentukan tag berdasarkan konten jawaban
-                    String tag = tentukanTag(pesan);
-                    dataService.tambahRiwayat(pesan, jawaban, tag);
-                    muatSidebarRiwayat();
-                }
+                addBotMessage(jawaban);
+                String tag = tentukanTag(pesan);
+                dataService.tambahRiwayat(pesan, jawaban, tag);
+                muatSidebarRiwayat();
             }
         });
         pause.play();
