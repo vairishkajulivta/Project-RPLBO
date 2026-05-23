@@ -58,24 +58,26 @@ public class ChatbotService {
         // ── Deteksi area tubuh dari pesan ────────────────────────────────────
         String areaTubuhTerdeteksi = deteksiAreaTubuh(p);
 
-        // ── KOMBINASI: kategori + jenis kulit ────────────────────────────────
+        // ── KOMBINASI: kategori + jenis kulit (jenis kulit SELALU prioritas) ──
         if (kategoriTerdeteksi != null && jenisKulitTerdeteksi != null) {
             List<Produk> hasil = getProdukByKategoriDanJenisKulit(kategoriTerdeteksi, jenisKulitTerdeteksi);
             lastProdukResult = hasil;
             return formatProdukKombinasiKulit(kategoriTerdeteksi, jenisKulitTerdeteksi, hasil);
         }
 
-        // ── KOMBINASI: kategori + area tubuh ─────────────────────────────────
+        // ── Hanya jenis kulit (tanpa kategori) ──────────────────────────────
+        if (jenisKulitTerdeteksi != null) {
+            // Jika user sebut area spesifik (badan/rambut/dll), filter area itu.
+            // Jika tidak ada area atau sebut "muka/wajah", default filter Muka saja.
+            lastProdukResult = getProdukByJenisKulitDanArea(jenisKulitTerdeteksi, areaTubuhTerdeteksi);
+            return formatProdukJenisKulit(jenisKulitTerdeteksi, lastProdukResult);
+        }
+
+        // ── KOMBINASI: kategori + area tubuh (hanya jika TIDAK ada jenis kulit)
         if (kategoriTerdeteksi != null && areaTubuhTerdeteksi != null) {
             List<Produk> hasil = getProdukByKategoriDanArea(kategoriTerdeteksi, areaTubuhTerdeteksi);
             lastProdukResult = hasil;
             return formatProdukKombinasiArea(kategoriTerdeteksi, areaTubuhTerdeteksi, hasil);
-        }
-
-        // ── Hanya jenis kulit ────────────────────────────────────────────────
-        if (jenisKulitTerdeteksi != null) {
-            lastProdukResult = getProdukByJenisKulit(jenisKulitTerdeteksi);
-            return formatProdukJenisKulit(jenisKulitTerdeteksi, lastProdukResult);
         }
 
         // ── Hanya kategori ───────────────────────────────────────────────────
@@ -134,10 +136,11 @@ public class ChatbotService {
         if (mengandungKategori(p, "sunscreen", "spf",
                 "tabir surya", "sun protection"))                             return "Sunscreen";
         if (mengandungKategori(p, "exfoliat", "scrub", "aha", "bha", "exfo")) return "Exfoliator";
-        if (mengandungKategori(p, "body care", "lotion badan"))              return "Body Care";
-        if (mengandungKategori(p, "eye care", "eye cream"))                  return "Eye Care";
-        if (mengandungKategori(p, "lip care", "lip balm", "lip"))            return "Lip Care";
-        if (mengandungKategori(p, "hair care", "shampoo"))                   return "Hair Care";
+        if (mengandungKategori(p, "body care", "lotion badan", "badan", "tubuh", "body")) return "Body Care";
+        if (mengandungKategori(p, "eye care", "eye cream", "mata"))          return "Eye Care";
+        if (mengandungKategori(p, "lip care", "lip balm", "lip", "bibir"))   return "Lip Care";
+        if (mengandungKategori(p, "hair care", "shampoo", "rambut"))         return "Hair Care";
+        if (mengandungKategori(p, "hand care", "tangan", "kaki"))            return "Hand Care";
         if (mengandungKategori(p, "acne care", "acne patch", "patch"))       return "Acne Care";
         if (mengandungKategori(p, "hand care"))                              return "Hand Care";
         // "lotion" tanpa konteks badan → Pelembab
@@ -166,6 +169,10 @@ public class ChatbotService {
     // Deteksi area tubuh dari teks pesan (selain wajah/muka yang sudah default)
     // =========================================================================
     private String deteksiAreaTubuh(String p) {
+        // "muka" dan "wajah" sengaja TIDAK dideteksi karena itu area default.
+        // "rambut","bibir","mata","badan","tangan","kaki" ditangani oleh deteksiKategori
+        // sehingga di sini hanya dipakai sebagai penguat filter area jika ada kombinasi
+        // dengan jenis kulit (contoh: "serum rambut kulit kering").
         if (p.contains("badan") || p.contains("tubuh") || p.contains("body")) return "Badan";
         if (p.contains("mata"))                                               return "Mata";
         if (p.contains("bibir"))                                              return "Bibir";
@@ -178,17 +185,47 @@ public class ChatbotService {
     // Filter: kategori + jenis kulit
     // =========================================================================
     private List<Produk> getProdukByKategoriDanJenisKulit(String kategori, String jenisKulit) {
+        return getProdukByKategoriDanJenisKulitDanArea(kategori, jenisKulit, null);
+    }
+
+    // Kategori yang produknya bukan di area muka — filter muka dimatikan
+    private static final java.util.Set<String> KATEGORI_NON_MUKA = new java.util.HashSet<>(
+        java.util.Arrays.asList("Body Care", "Hair Care", "Lip Care", "Eye Care", "Hand Care")
+    );
+
+    private List<Produk> getProdukByKategoriDanJenisKulitDanArea(String kategori, String jenisKulit, String areaTubuh) {
         List<Produk> byKategori = db.getProdukByKategori(kategori);
         List<Produk> hasil = new ArrayList<>();
+
+        // Untuk kategori non-muka (rambut, badan, bibir, dll), jangan filter Muka
+        boolean filterMuka = !KATEGORI_NON_MUKA.contains(kategori)
+                && (areaTubuh == null
+                || areaTubuh.equalsIgnoreCase("Muka")
+                || areaTubuh.equalsIgnoreCase("Wajah"));
+
         for (Produk prod : byKategori) {
             String jk = prod.getJenisKulit();
-            if (jk != null && (jk.equalsIgnoreCase(jenisKulit)
-                    || jk.equalsIgnoreCase("Semua Jenis Kulit"))) {
-                hasil.add(prod);
+            boolean cocokKulit = jk != null && (jk.equalsIgnoreCase(jenisKulit)
+                    || jk.equalsIgnoreCase("Semua Jenis Kulit"));
+            if (!cocokKulit) continue;
+
+            String at = prod.getAreaTubuh() != null ? prod.getAreaTubuh().toLowerCase() : "";
+            boolean cocokArea;
+            if (filterMuka) {
+                // Kategori muka: hanya produk area Muka/Wajah
+                cocokArea = at.contains("muka") || at.contains("wajah");
+            } else if (areaTubuh != null) {
+                // Ada area spesifik: filter ke area itu
+                cocokArea = at.contains(areaTubuh.toLowerCase());
+            } else {
+                // Kategori non-muka tanpa area spesifik: tampilkan semua produk kategori itu
+                cocokArea = true;
             }
+            if (cocokArea) hasil.add(prod);
         }
-        // Jika tidak ada yang cocok persis, kembalikan semua produk kategori itu
-        return hasil.isEmpty() ? byKategori : hasil;
+
+        // Jika tidak ada yang cocok, kembalikan list kosong (jangan campur area lain)
+        return hasil;
     }
 
     // =========================================================================
@@ -203,8 +240,8 @@ public class ChatbotService {
                 hasil.add(prod);
             }
         }
-        // Jika tidak ada yang cocok persis, kembalikan semua produk kategori itu
-        return hasil.isEmpty() ? byKategori : hasil;
+        // Jika tidak ada yang cocok, kembalikan list kosong
+        return hasil;
     }
 
     // =========================================================================
@@ -253,15 +290,37 @@ public class ChatbotService {
     }
 
     private List<Produk> getProdukByJenisKulit(String jenisKulit) {
+        return getProdukByJenisKulitDanArea(jenisKulit, null);
+    }
+
+    private List<Produk> getProdukByJenisKulitDanArea(String jenisKulit, String areaTubuh) {
         List<Produk> semua = db.getAllProduk();
         List<Produk> hasil = new ArrayList<>();
+
+        boolean filterMuka = (areaTubuh == null
+                || areaTubuh.equalsIgnoreCase("Muka")
+                || areaTubuh.equalsIgnoreCase("Wajah"));
+
         for (Produk p : semua) {
             String jk = p.getJenisKulit();
-            if (jk != null && (jk.equalsIgnoreCase(jenisKulit)
-                    || jk.equalsIgnoreCase("Semua Jenis Kulit"))) {
-                hasil.add(p);
+            boolean cocokKulit = jk != null && (jk.equalsIgnoreCase(jenisKulit)
+                    || jk.equalsIgnoreCase("Semua Jenis Kulit"));
+            if (!cocokKulit) continue;
+
+            String at = p.getAreaTubuh() != null ? p.getAreaTubuh().toLowerCase() : "";
+            boolean cocokArea;
+            if (filterMuka) {
+                // Default muka: hanya produk yang areaTubuh mengandung muka/wajah
+                cocokArea = at.contains("muka") || at.contains("wajah");
+            } else {
+                // Area spesifik: cocokkan langsung, TIDAK ada fallback ke muka
+                cocokArea = at.contains(areaTubuh.toLowerCase());
             }
+            if (cocokArea) hasil.add(p);
         }
+
+        // Fallback HANYA jika area spesifik tidak ditemukan: tampilkan pesan kosong
+        // (jangan fallback ke semua area agar tidak mencampur produk muka/badan/dll)
         return hasil;
     }
 
