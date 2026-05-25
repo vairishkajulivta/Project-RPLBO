@@ -11,7 +11,7 @@ import java.util.List;
 public class DatabaseService {
 
     private static DatabaseService instance;
-    private static final String URL = "jdbc:sqlite:target/sahabatlaris.db";
+    private static final String URL = "jdbc:sqlite:sahabatlaris.db";
 
     private DatabaseService() {
         try {
@@ -30,8 +30,7 @@ public class DatabaseService {
     private Connection connect() throws SQLException {
         return DriverManager.getConnection(URL);
     }
-
-
+    
     private void initDatabase() {
         String createProduk =
                 "CREATE TABLE IF NOT EXISTS produk (" +
@@ -236,7 +235,6 @@ public class DatabaseService {
         return "P001";
     }
 
-
     public String[] getInfoToko() {
         String sql = "SELECT * FROM info_toko LIMIT 1";
         try (Connection conn = this.connect(); Statement stmt = conn.createStatement();
@@ -381,7 +379,6 @@ public class DatabaseService {
         LocalDate hari = LocalDate.now();
         LocalTime sekarang = LocalTime.now();
 
-        // Cek hari libur khusus
         for (HariLibur hl : getAllHariLibur()) {
             if (hl.cocokDengan(hari)) {
                 return new String[]{"tutup", hl.getNama(), "-", "-"};
@@ -503,9 +500,6 @@ public class DatabaseService {
         for (HariLibur hl : liburDefault) tambahHariLibur(hl);
     }
 
-    // =========================================================================
-    // CONTOH PERTANYAAN
-    // =========================================================================
     private void isiContohPertanyaanDefault() {
         try (Connection conn = this.connect();
              ResultSet rs = conn.createStatement().executeQuery("SELECT COUNT(*) FROM contoh_pertanyaan")) {
@@ -547,36 +541,33 @@ public class DatabaseService {
         return list;
     }
 
-    // =========================================================================
-    // DATA AWAL PRODUK
-    // =========================================================================
     private void isiDataAwal() {
         Object[][] data = {
                 {"Glad2Glow Centella Allantoin Soothing", "Pelembab", 45000, "Centella, Allantoin", "Kulit Sensitif", "Muka", "images/produk/Glad2Glow Centella Allantoin Soothing.png"},
                 {"Skintific 5X Ceramide Soothing Toner", "Toner", 115000, "5X Ceramide", "Kulit Kering", "Muka", "images/produk/Skintific 5X Ceramide Soothing Toner.jpg"},
-                {"Labore Sensitive Skin Care Gentlebiome Barrier", "Pelembab", 150000, "Microbiome", "Kulit Sensitif", "Muka", "images/produk/Labore Sensitive Skin Care Gentlebiome Barrier.png"},
+                {"Labore Sensitive Skin Care Gentlebiome Barrier Repair Serum", "Pelembab", 150000, "Microbiome", "Kulit Sensitif", "Muka", "images/produk/Labore Sensitive Skin Care Gentlebiome Barrier Repair Serum.png"},
                 {"YOU AcnePlus Low pH Calming Cleanser", "Facial Wash", 55000, "Centella, Herbal", "Kulit Berjerawat", "Muka", "images/produk/YOU AcnePlus Low pH Calming Cleanser.png"},
                 {"Acnaway Mugwort Water Gel Moisturizer", "Pelembab", 40000, "Mugwort", "Kulit Berjerawat", "Muka", "images/produk/Acnaway Mugwort Water Gel Moisturizer.jpg"},
-                {"Somethinc Holyshield! UV Watery Sunscreen Gel", "Sunscreen", 48000, "UV Filter", "Semua Jenis Kulit", "Muka", "images/produk/Somethinc Holyshield! UV Watery Sunscreen Gel.png"},
+                {"Somethinc Holyshield! UV Watery Sunscreen Gel SPF 50+ PA++++", "Sunscreen", 48000, "UV Filter", "Semua Jenis Kulit", "Muka", "images/produk/Somethinc Holyshield! UV Watery Sunscreen Gel SPF 50+ PA++++.png"},
                 {"Wardah Hydra Rose Petal Infused Toner", "Toner", 35000, "Rose Oil", "Kulit Kering", "Muka", "images/produk/Wardah Hydra Rose Petal Infused Toner.jpg"},
                 {"Skintific 5% AHA BHA PHA Exfoliating Toner", "Toner", 110000, "AHA BHA PHA", "Kulit Berminyak", "Muka", "images/produk/Skintific 5% AHA BHA PHA Exfoliating Toner.jpg"},
                 {"Ms Glow Acne Series Facial Wash", "Facial Wash", 60000, "Tea Tree", "Kulit Berjerawat", "Muka", "images/produk/Ms Glow Acne Series Facial Wash.jpg"},
                 {"Hanasui Power Bright Expert Serum", "Serum", 25000, "Niacinamide", "Semua Jenis Kulit", "Muka", "images/produk/Hanasui Power Bright Expert Serum.jpg"},
                 {"Emina Sun Battle SPF 35 PA +++", "Sunscreen", 30000, "Aloe Vera", "Semua Jenis Kulit", "Muka", "images/produk/Emina Sun Battle SPF 35 PA +++.png"},
                 {"The Ordinary Niacinamide 10% + Zinc 1%", "Serum", 100000, "Niacinamide, Zinc", "Kulit Berminyak", "Muka", "images/produk/The Ordinary Niacinamide 10% + Zinc 1%.jpg"},
-                {"Garnier Sakura White Pinkish Radiance Sleeping", "Pelembab", 28000, "Sakura Extract", "Semua Jenis Kulit", "Muka", "images/produk/Garnier Sakura White Pinkish Radiance Sleeping.jpg"},
-                {"Nivea Body Serum Care & Protect", "Body Care", 35000, "Vitamin C, SPF 15", "Semua Jenis Kulit", "Badan", "images/produk/Nivea_Body_Serum.jpg"},
-                {"Vaseline Gluta-Hya Serum Burst", "Body Care", 68000, "Hyaluron, Niacinamide", "Kulit Kering", "Badan", "images/produk/Vaseline_Gluta_Hya.jpg"},
-                {"Grace and Glow Black Opium", "Body Care", 54000, "Niacinamide, Shea Butter", "Semua Jenis Kulit", "Badan", "images/produk/Grace_Glow_Body.jpg"},
-                {"The Caviar Shampoo", "Hair Care", 75000, "Caviar Extract", "Semua Jenis Kulit", "Rambut", "images/produk/Caviar_Shampoo.jpg"},
+                {"Garnier Sakura White Pinkish Radiance Sleeping Essence", "Pelembab", 28000, "Sakura Extract", "Semua Jenis Kulit", "Muka", "images/produk/Garnier Sakura White Pinkish Radiance Sleeping Essence.jpg"},
+                {"Nivea Body Serum Care & Protect", "Body Care", 35000, "Vitamin C, SPF 15", "Semua Jenis Kulit", "Badan", "images/produk/Nivea Body Serum Care & Protect.jpg"},
+                {"Vaseline Gluta-Hya Serum Burst", "Body Care", 68000, "Hyaluron, Niacinamide", "Kulit Kering", "Badan", "images/produk/Vaseline Gluta-Hya Serum Burst.jpg"},
+                {"Grace and Glow Black Opium", "Body Care", 54000, "Niacinamide, Shea Butter", "Semua Jenis Kulit", "Badan", "images/produk/Grace and Glow Black Opium.jpg"},
+                {"The Caviar Shampoo", "Hair Care", 75000, "Caviar Extract", "Semua Jenis Kulit", "Rambut", "images/produk/The Caviar Shampoo.jpg"},
                 {"Makarizo Advisor Hair Recovery Vitamax", "Hair Care", 25000, "Silk Protein, Vit A,C,E", "Semua Jenis Kulit", "Rambut", "images/produk/Makarizo Advisor Hair Recovery Vitamax.jpg"},
                 {"Somethinc Game Changer Tripeptide Eye Concentrate Gel", "Eye Care", 145000, "Peptide, Caffeine", "Semua Jenis Kulit", "Mata", "images/produk/Somethinc Game Changer Tripeptide Eye Concentrate Gel.jpg"},
-                {"Skintific 360 Crystal Massager Lifting Eye Cream", "Eye Care", 160000, "Retinol, Peptide", "Kulit Menua", "Mata", "images/produk/Skintific 360 Crystal Massager Lifting Eye Cream.jpg"},
+                {"Skintific 360° Crystal Massager Lifting Eye Cream", "Eye Care", 160000, "Retinol, Peptide", "Kulit Menua", "Mata", "images/produk/Skintific 360° Crystal Massager Lifting Eye Cream.jpg"},
                 {"Pure Paw Paw Ointment", "Lip Care", 65000, "Carica Papaya", "Kulit Kering", "Bibir", "images/produk/Pure Paw Paw Ointment.jpg"},
                 {"Laneige Lip Sleeping Mask", "Lip Care", 200000, "Berry Mix Complex", "Kulit Kering", "Bibir", "images/produk/Laneige Lip Sleeping Mask.jpg"},
                 {"The Body Shop Almond Hand & Nail Cream", "Hand Care", 99000, "Almond Oil", "Kulit Kering", "Tangan & Kaki", "images/produk/The Body Shop Almond Hand & Nail Cream.jpg"},
                 {"Bio Oil Skincare Oil", "Body Care", 140000, "PurCellin Oil", "Kulit Sensitif", "Badan", "images/produk/Bio Oil Skincare Oil.jpg"},
-                {"COSRX Acne Pimple Master Patch", "Acne Care", 45000, "Hydrocolloid", "Kulit Berjerawat", "Muka", "images/produk/COSRX Acne Pimple Master Patch .jpg"},
+                {"COSRX Acne Pimple Master Patch", "Acne Care", 45000, "Hydrocolloid", "Kulit Berjerawat", "Muka", "images/produk/COSRX Acne Pimple Master Patch.jpg"},
                 {"Hada Labo Gokujyun Ultimate Moisturizing Lotion", "Toner", 48000, "Hyaluronic Acid", "Kulit Kering", "Muka", "images/produk/Hada Labo Gokujyun Ultimate Moisturizing Lotion.jpg"},
                 {"Avoskin Miraculous Retinol Ampoule", "Serum", 249000, "Retinol, Peptide", "Kulit Menua", "Muka", "images/produk/Avoskin Miraculous Retinol Ampoule.jpg"},
                 {"Cetaphil Gentle Skin Cleanser", "Facial Wash", 120000, "Glycerin, Panthenol", "Kulit Sensitif", "Muka", "images/produk/Cetaphil Gentle Skin Cleanser.jpg"},
@@ -668,7 +659,6 @@ public class DatabaseService {
             this.keterangan = keterangan;
         }
 
-        /** Cek apakah hari libur ini cocok dengan tanggal yang diberikan. */
         public boolean cocokDengan(LocalDate tanggalCek) {
             try {
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -679,7 +669,6 @@ public class DatabaseService {
             }
         }
 
-        /** Cek apakah status hari ini adalah tutup. */
         public boolean isTutup() {
             return "tutup".equalsIgnoreCase(this.status);
         }

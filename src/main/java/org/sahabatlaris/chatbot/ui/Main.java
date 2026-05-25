@@ -31,7 +31,6 @@ public class Main extends Application {
 
     public void showPilihMode(Stage stage) {
 
-        // ── Judul ─────────────────────────────────────────────────────────────
         Label judulLbl = new Label("SahabatLaris \uD83D\uDECD");
         judulLbl.setStyle(
                 "-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #1a1a2e;");
@@ -43,7 +42,6 @@ public class Main extends Application {
         header.setAlignment(Pos.CENTER);
         header.setPadding(new Insets(40, 0, 32, 0));
 
-        // ── Kartu Admin ───────────────────────────────────────────────────────
         VBox kartuAdmin = buatKartu(
                 "\uD83D\uDEE1",   // shield emoji
                 "#4B3FC8",
@@ -54,7 +52,6 @@ public class Main extends Application {
                 e -> { try { showAdminLogin(stage); } catch (Exception ex) { ex.printStackTrace(); } }
         );
 
-        // ── Kartu User ────────────────────────────────────────────────────────
         VBox kartuUser = buatKartu(
                 "\uD83D\uDCAC",   // speech bubble emoji
                 "#22c55e",
@@ -69,7 +66,6 @@ public class Main extends Application {
         kartuRow.setAlignment(Pos.CENTER);
         kartuRow.setPadding(new Insets(0, 40, 40, 40));
 
-        // ── Footer ────────────────────────────────────────────────────────────
         Label footer = new Label("\u00A9 2026 SahabatLaris \u00B7 Skincare Chatbot");
         footer.setStyle("-fx-font-size: 11px; -fx-text-fill: #bbb;");
         footer.setPadding(new Insets(0, 0, 20, 0));
@@ -88,13 +84,11 @@ public class Main extends Application {
         stage.show();
     }
 
-    /** Helper: buat kartu pilihan mode */
     private VBox buatKartu(String ikon, String warnaBg, String judul,
                            String deskripsi, String tombolTeks,
                            String warnaTombol,
                            javafx.event.EventHandler<javafx.event.ActionEvent> aksi) {
 
-        // Lingkaran ikon
         StackPane lingkaran = new StackPane();
         lingkaran.setMinSize(80, 80);
         lingkaran.setMaxSize(80, 80);
@@ -138,10 +132,6 @@ public class Main extends Application {
         return kartu;
     }
 
-    // -------------------------------------------------------------------------
-    // Navigasi layar — dipanggil oleh kartu di atas & oleh tombol Kembali
-    // -------------------------------------------------------------------------
-
     public void showAdminLogin(Stage stage) throws IOException {
         loadScene(stage,
                 "/org/sahabatlaris/chatbot/view/admin_login.fxml",
@@ -159,10 +149,6 @@ public class Main extends Application {
                 "/org/sahabatlaris/chatbot/view/user_chat.fxml",
                 "SahabatLaris - Chat", 1100, 700);
     }
-
-    // -------------------------------------------------------------------------
-    // Helper internal
-    // -------------------------------------------------------------------------
 
     private void loadScene(Stage stage, String fxmlPath,
                            String title, double w, double h) throws IOException {

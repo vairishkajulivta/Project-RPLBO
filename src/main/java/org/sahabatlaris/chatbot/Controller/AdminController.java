@@ -58,19 +58,15 @@ public class AdminController {
 
     private static final String IMAGE_DIR = "images/produk/";
 
-    /** Resolusi path gambar ke absolute path agar bisa diload dari mana saja */
     private static String resolveImagePath(String rawPath) {
         if (rawPath == null || rawPath.isBlank()) return "";
-        // URL internet langsung dikembalikan
         if (rawPath.startsWith("http://") || rawPath.startsWith("https://")
                 || rawPath.startsWith("file:")) return rawPath;
-        // Path relatif → resolve dari working dir
         File f = new File(rawPath);
         if (f.isAbsolute()) return f.toURI().toString();
-        // Coba relatif dari working dir
         File abs = new File(System.getProperty("user.dir"), rawPath);
         if (abs.exists()) return abs.toURI().toString();
-        return rawPath; // fallback
+        return rawPath;
     }
 
     @FXML
@@ -241,13 +237,6 @@ public class AdminController {
 
     @FXML public void showTambahProduk() { showFormProduk(null); }
 
-    /**
-     * Import Gambar Massal:
-     * Admin pilih SATU FOLDER berisi file gambar.
-     * Program mencocokkan nama file (tanpa ekstensi) dengan nama produk secara fuzzy,
-     * lalu menyalin gambar ke images/produk/ dan menyimpan path-nya ke setiap produk.
-     * Hasil matching ditampilkan dalam dialog ringkasan.
-     */
     @FXML
     public void importGambarMassal() {
         DirectoryChooser dc = new DirectoryChooser();
@@ -256,7 +245,6 @@ public class AdminController {
         File folder = dc.showDialog(owner);
         if (folder == null) return;
 
-        // Kumpulkan semua file gambar dalam folder
         File[] files = folder.listFiles(f -> {
             String n = f.getName().toLowerCase();
             return f.isFile() && (n.endsWith(".jpg") || n.endsWith(".jpeg")
@@ -281,7 +269,6 @@ public class AdminController {
             String namaFile = stripExtension(imgFile.getName()).toLowerCase()
                     .replaceAll("[^a-z0-9]", ""); // hanya huruf & angka
 
-            // Cari produk yang namanya paling mirip
             Produk target = null;
             int bestScore = -1;
 
@@ -289,8 +276,6 @@ public class AdminController {
                 String namaProduk = p.getNamaProduk().toLowerCase()
                         .replaceAll("[^a-z0-9]", "");
                 int score = 0;
-                // Nilai: nama file sama persis = 100, file ada di nama produk = 60,
-                //        nama produk ada di file = 40, file mulai sama = 30
                 if (namaProduk.equals(namaFile))          score = 100;
                 else if (namaProduk.contains(namaFile))   score = 60;
                 else if (namaFile.contains(namaProduk))   score = 40;
@@ -321,7 +306,6 @@ public class AdminController {
 
         tampilkanPanel();
 
-        // Dialog ringkasan
         Stage summary = new Stage();
         summary.initModality(Modality.APPLICATION_MODAL);
         summary.setTitle("Hasil Import Gambar Massal");
@@ -401,12 +385,6 @@ public class AdminController {
             labelJumlahProduk.setText(String.valueOf(list.size()));
     }
 
-    // ════════════════════════════════════════════════════════════════════════
-    //  FORM TAMBAH / UBAH PRODUK
-    //  Gambar bisa diisi via:
-    //    (A) Upload file lokal  — disalin ke images/produk/
-    //    (B) Paste URL gambar   — langsung simpan URL-nya
-    // ════════════════════════════════════════════════════════════════════════
     private void showFormProduk(Produk existingProduk) {
         Stage dialog = new Stage();
         dialog.initModality(Modality.APPLICATION_MODAL);
@@ -419,7 +397,6 @@ public class AdminController {
         Label titleLbl = new Label(existingProduk == null ? "Tambah Produk Baru" : "Ubah Produk");
         titleLbl.setStyle("-fx-font-size:16px;-fx-font-weight:bold;-fx-text-fill:#1a1a2e;");
 
-        // ── Field teks ───────────────────────────────────────────────────────
         TextField fNama = new TextField();
         fNama.setPromptText("Nama Produk");
         fNama.getStyleClass().add("info-field");
@@ -463,12 +440,8 @@ public class AdminController {
         CheckBox fAktif = new CheckBox("Aktif");
         fAktif.setSelected(true);
 
-        // ════════════════════════════════════════════════════════════════════
-        //  BAGIAN GAMBAR — Tab: Upload File | URL
-        // ════════════════════════════════════════════════════════════════════
         final String[] imagePath = {""};
 
-        // ── Preview thumbnail (bersama untuk kedua tab) ──────────────────────
         StackPane previewPane = new StackPane();
         previewPane.setMinSize(110, 110);
         previewPane.setMaxSize(110, 110);
@@ -495,7 +468,6 @@ public class AdminController {
 
         previewPane.getChildren().addAll(noImgLbl, previewImg);
 
-        // ── Helper: load preview dari string path/URL ────────────────────────
         Runnable updatePreview = () -> {
             String p = imagePath[0];
             if (p == null || p.isBlank()) {
@@ -526,19 +498,16 @@ public class AdminController {
             }
         };
 
-        // ── Label info gambar saat ini ────────────────────────────────────────
         Label fileNameLbl = new Label("Tidak ada gambar dipilih");
         fileNameLbl.setStyle("-fx-font-size:11px;-fx-text-fill:#888;-fx-wrap-text:true;");
         fileNameLbl.setWrapText(true);
         fileNameLbl.setMaxWidth(250);
 
-        // ── TAB B: Input URL Gambar (deklarasi di sini agar bisa dipakai di lambda atas) ──
         TextField urlField = new TextField();
         urlField.setPromptText("https://example.com/gambar.jpg  atau  path/lokal/gambar.jpg");
         urlField.getStyleClass().add("info-field");
         urlField.setMaxWidth(Double.MAX_VALUE);
 
-        // ── TAB A: Upload File Lokal ─────────────────────────────────────────
         Button btnUpload = new Button("📁  Pilih dari Komputer...");
         btnUpload.setStyle(
                 "-fx-background-color:#4B3FC8;-fx-text-fill:white;" +
@@ -610,14 +579,10 @@ public class AdminController {
             updatePreview.run();
         });
 
-        // Juga load saat tekan Enter di url field
         urlField.setOnAction(e -> btnLoadUrl.fire());
 
-        // ── Gabung preview + kedua metode dalam satu HBox ────────────────────
-        // Kiri: preview | Kanan: upload tab + separator + url tab
         VBox metodBox = new VBox(0);
 
-        // Header separator upload
         Label lblUploadHeader = new Label("Upload File");
         lblUploadHeader.setStyle(
                 "-fx-font-size:11px;-fx-font-weight:bold;-fx-text-fill:#4B3FC8;" +
@@ -646,7 +611,6 @@ public class AdminController {
                         "-fx-border-radius:10;-fx-background-radius:10;" +
                         "-fx-padding:12;");
 
-        // ── Isi form jika mode Edit ──────────────────────────────────────────
         if (existingProduk != null) {
             fNama.setText(existingProduk.getNamaProduk());
             fKategori.setValue(existingProduk.getKategori());
@@ -670,7 +634,6 @@ public class AdminController {
             }
         }
 
-        // ── Error & Tombol Aksi ──────────────────────────────────────────────
         Label errMsg = new Label();
         errMsg.setStyle("-fx-text-fill:#e53e3e;-fx-font-size:12px;");
 
@@ -694,7 +657,6 @@ public class AdminController {
             try { harga = Long.parseLong(fHarga.getText()); }
             catch (NumberFormatException ex) { errMsg.setText("Harga harus berupa angka."); return; }
 
-            // Jika ada URL di field URL, prioritaskan URL itu
             String urlInput = urlField.getText().trim();
             if (!urlInput.isEmpty()) {
                 imagePath[0] = urlInput;
@@ -728,7 +690,6 @@ public class AdminController {
             dialog.close();
         });
 
-        // ── Susun form ───────────────────────────────────────────────────────
         root.getChildren().addAll(
                 titleLbl,
                 labeledField("Nama Produk",  fNama),

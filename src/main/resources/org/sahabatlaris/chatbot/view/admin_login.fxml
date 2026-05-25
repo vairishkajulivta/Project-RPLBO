@@ -10,7 +10,6 @@
       styleClass="root-login"
       prefWidth="900" prefHeight="600">
 
-    <!-- Panel Kiri -->
     <VBox styleClass="left-panel" prefWidth="360" alignment="CENTER" spacing="24">
         <StackPane styleClass="logo-circle">
             <Label text="SL" styleClass="logo-initials"/>
@@ -20,7 +19,6 @@
         <Label text="Khusus untuk pengelola toko" styleClass="brand-tagline" textAlignment="CENTER"/>
     </VBox>
 
-    <!-- Panel Kanan -->
     <VBox styleClass="right-panel" HBox.hgrow="ALWAYS" alignment="CENTER" spacing="20">
         <padding>
             <Insets top="40" right="80" bottom="40" left="80"/>
@@ -50,6 +48,15 @@
                                promptText="Masukkan password"
                                maxWidth="Infinity"
                                onAction="#handleLogin"/>
+
+                <TextField fx:id="plainPasswordField"
+                           styleClass="login-field"
+                           promptText="Masukkan password"
+                           maxWidth="Infinity"
+                           onAction="#handleLogin"
+                           visible="false"
+                           managed="false"/>
+
                 <Label fx:id="togglePassword" text="👁"
                        styleClass="toggle-password"
                        alignment="CENTER_RIGHT"
@@ -72,7 +79,6 @@
                 maxWidth="340"
                 onAction="#handleLogin"/>
 
-        <!-- Tombol Kembali -->
         <Button text="← Kembali ke Pilih Mode"
                 maxWidth="340"
                 onAction="#handleKembali"
